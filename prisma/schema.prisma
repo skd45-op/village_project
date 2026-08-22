@@ -109,6 +109,7 @@ model User {
   updatedAt DateTime   @updatedAt
 
   permissions      AdminPermission[]
+  requests         MembershipRequest[] @relation("Applicant")
   reviewedRequests MembershipRequest[] @relation("ReviewedBy")
   mediaAdded       Media[]             @relation("MediaAddedBy")
   budgetAdded      BudgetEntry[]       @relation("BudgetAddedBy")
@@ -124,11 +125,11 @@ model User {
 }
 
 model AdminPermission {
-  id        String   @id @default(uuid())
-  userId    String
-  module    Module
+  id          String   @id @default(uuid())
+  userId      String
+  module      Module
   grantedById String?
-  grantedAt DateTime @default(now())
+  grantedAt   DateTime @default(now())
 
   user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   grantedBy User? @relation("GrantedBy", fields: [grantedById], references: [id])
@@ -139,6 +140,8 @@ model AdminPermission {
 
 model MembershipRequest {
   id           String        @id @default(uuid())
+  // Applicant account (created pending at registration).
+  userId       String?
   // Snapshot of the applicant's submitted data (name, age, photo, mobile, email, address, relation, etc.)
   userSnapshot Json
   status       RequestStatus @default(pending)
@@ -147,6 +150,7 @@ model MembershipRequest {
   reviewedAt   DateTime?
   createdAt    DateTime      @default(now())
 
+  user       User? @relation("Applicant", fields: [userId], references: [id], onDelete: Cascade)
   reviewedBy User? @relation("ReviewedBy", fields: [reviewedById], references: [id])
 
   @@index([status])
@@ -155,11 +159,11 @@ model MembershipRequest {
 // ---------- Occasions & Media ----------
 
 model Occasion {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String?
   iconUrl     String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   sessions Session[]
 }
