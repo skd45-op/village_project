@@ -1,0 +1,311 @@
+// Village Community Platform — Prisma schema
+// Mirrors doc/village-platform-architecture.md §4 (Data Model).
+// Governance rule: Admins CREATE only; only Super Admin EDIT/DELETE.
+// Budget entries are immutable — fixes happen via linked correction entries.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  guest
+  member
+  admin
+  superadmin
+}
+
+enum UserStatus {
+  active
+  pending
+  rejected
+}
+
+enum Module {
+  media
+  budget
+  members
+  occasions
+  polls
+  cricket
+}
+
+enum RequestStatus {
+  pending
+  needs_info
+  approved
+  rejected
+}
+
+enum SessionStatus {
+  upcoming
+  ongoing
+  completed
+}
+
+enum MediaType {
+  photo
+  yt_link
+  live
+}
+
+enum CorrectionFlag {
+  none
+  flagged
+  resolved
+  rejected
+}
+
+enum BudgetType {
+  income
+  expense
+}
+
+enum DonationMode {
+  cash
+  upi
+  bank
+}
+
+enum PollVisibility {
+  members // Members+ only (default — per resolved decision, guests never vote)
+  all
+}
+
+enum ContactTarget {
+  general
+  admin
+  member
+}
+
+enum ContactStatus {
+  new
+  read
+  resolved
+}
+
+// ---------- Core ----------
+
+model User {
+  id        String     @id @default(uuid())
+  // Links to the Supabase Auth user (auth.users.id) once the account has login access.
+  authId    String?    @unique
+  firstName String
+  lastName  String
+  age       Int?
+  photoUrl  String?
+  mobile    String?
+  email     String?    @unique // login identifier (email + password)
+  address   String?
+  role      Role       @default(guest)
+  status    UserStatus @default(pending)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  permissions      AdminPermission[]
+  reviewedRequests MembershipRequest[] @relation("ReviewedBy")
+  mediaAdded       Media[]             @relation("MediaAddedBy")
+  budgetAdded      BudgetEntry[]       @relation("BudgetAddedBy")
+  corrections      BudgetCorrection[]  @relation("CorrectionAddedBy")
+  donations        Donation[]
+  pollsCreated     Poll[]              @relation("PollCreatedBy")
+  pollVotes        PollVote[]
+  notifications    Notification[]
+  grantsGiven      AdminPermission[]   @relation("GrantedBy")
+
+  @@index([role])
+  @@index([status])
+}
+
+model AdminPermission {
+  id        String   @id @default(uuid())
+  userId    String
+  module    Module
+  grantedById String?
+  grantedAt DateTime @default(now())
+
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User? @relation("GrantedBy", fields: [grantedById], references: [id])
+
+  @@unique([userId, module])
+  @@index([userId])
+}
+
+model MembershipRequest {
+  id           String        @id @default(uuid())
+  // Snapshot of the applicant's submitted data (name, age, photo, mobile, email, address, relation, etc.)
+  userSnapshot Json
+  status       RequestStatus @default(pending)
+  adminNote    String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime      @default(now())
+
+  reviewedBy User? @relation("ReviewedBy", fields: [reviewedById], references: [id])
+
+  @@index([status])
+}
+
+// ---------- Occasions & Media ----------
+
+model Occasion {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  iconUrl     String?
+  createdAt   DateTime  @default(now())
+
+  sessions Session[]
+}
+
+model Session {
+  id         String        @id @default(uuid())
+  occasionId String
+  year       Int
+  title      String
+  startDate  DateTime?
+  endDate    DateTime?
+  status     SessionStatus @default(upcoming)
+  createdAt  DateTime      @default(now())
+
+  occasion      Occasion      @relation(fields: [occasionId], references: [id], onDelete: Cascade)
+  media         Media[]
+  budgetEntries BudgetEntry[]
+  donations     Donation[]
+
+  @@unique([occasionId, year])
+  @@index([status])
+}
+
+model Media {
+  id             String         @id @default(uuid())
+  sessionId      String
+  type           MediaType
+  url            String
+  addedById      String?
+  addedAt        DateTime       @default(now())
+  isLocked       Boolean        @default(true) // enforced server-side
+  correctionFlag CorrectionFlag @default(none)
+  correctionNote String?
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  addedBy User?   @relation("MediaAddedBy", fields: [addedById], references: [id])
+
+  @@index([sessionId])
+}
+
+// ---------- Budget / Treasury ----------
+
+model BudgetEntry {
+  id          String     @id @default(uuid())
+  sessionId   String
+  type        BudgetType
+  category    String
+  amount      Decimal    @db.Decimal(12, 2)
+  description String?
+  receiptUrl  String? // proof/receipt photo
+  addedById   String?
+  addedAt     DateTime   @default(now())
+  isLocked    Boolean    @default(true) // immutable — never edited/deleted
+
+  session     Session            @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  addedBy     User?              @relation("BudgetAddedBy", fields: [addedById], references: [id])
+  corrections BudgetCorrection[]
+
+  @@index([sessionId])
+}
+
+model BudgetCorrection {
+  id              String   @id @default(uuid())
+  originalEntryId String
+  amountDelta     Decimal  @db.Decimal(12, 2) // e.g. -500.00
+  reason          String
+  addedById       String? // super admin only (enforced server-side)
+  addedAt         DateTime @default(now())
+
+  originalEntry BudgetEntry @relation(fields: [originalEntryId], references: [id], onDelete: Cascade)
+  addedBy       User?       @relation("CorrectionAddedBy", fields: [addedById], references: [id])
+
+  @@index([originalEntryId])
+}
+
+model Donation {
+  id        String       @id @default(uuid())
+  sessionId String
+  memberId  String
+  amount    Decimal      @db.Decimal(12, 2)
+  mode      DonationMode
+  date      DateTime
+  receiptNo String?
+  createdAt DateTime     @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  member  User    @relation(fields: [memberId], references: [id])
+
+  @@index([sessionId])
+  @@index([memberId])
+}
+
+// ---------- Polls ----------
+
+model Poll {
+  id          String         @id @default(uuid())
+  title       String
+  options     Json // array of option strings
+  visibility  PollVisibility @default(members)
+  createdById String?
+  createdAt   DateTime       @default(now())
+  expiresAt   DateTime?
+
+  createdBy User?      @relation("PollCreatedBy", fields: [createdById], references: [id])
+  votes     PollVote[]
+}
+
+model PollVote {
+  id     String @id @default(uuid())
+  pollId String
+  userId String
+  option String
+
+  poll Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId]) // one vote per user per poll
+  @@index([pollId])
+}
+
+// ---------- Contact & Notifications ----------
+
+model ContactMessage {
+  id        String        @id @default(uuid())
+  name      String
+  email     String?
+  message   String
+  target    ContactTarget @default(general)
+  status    ContactStatus @default(new)
+  createdAt DateTime      @default(now())
+
+  @@index([status])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+// ---------- Phase 2: Cricket (schema reserved; features built later) ----------
+// See doc §Phase 2 additions. Kept here so migrations are additive-ready.
