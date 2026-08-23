@@ -22,51 +22,40 @@ export async function createOccasion(form: FormData) {
 
   const occasion = await prisma.occasion.create({ data: { name, description, iconUrl } });
   revalidatePath("/occasions");
-  redirect(`/occasions/${occasion.id}/new`);
+  redirect(`/occasions/${occasion.id}`);
 }
 
-export async function createSession(form: FormData) {
-  await requireModule("occasions");
-  const occasionId = form.get("occasionId") as string;
-  const title = (form.get("title") as string)?.trim();
-  const year = Number(form.get("year"));
-  const status = (form.get("status") as SessionStatus) || "upcoming";
-  const startDate = (form.get("startDate") as string) || "";
-  const endDate = (form.get("endDate") as string) || "";
-  if (!title || !Number.isFinite(year)) throw new Error("Title and year are required.");
-
-  const session = await prisma.session.create({
-    data: {
-      occasionId,
-      title,
-      year,
-      status,
-      startDate: startDate ? new Date(startDate) : null,
-      endDate: endDate ? new Date(endDate) : null,
-    },
-  });
-
-  await notifyAllMembers("new_session", `New session added: ${title}.`);
-  revalidatePath("/occasions");
-  redirect(`/occasions/${occasionId}/${session.id}`);
-}
-
+// Auto-creates the year bucket (OccasionSession) if it doesn't exist yet,
+// then saves the media record. Users never interact with "sessions" directly.
 export async function addMedia(form: FormData) {
   const user = await requireModule("media");
-  const sessionId = form.get("sessionId") as string;
+  const occasionId = form.get("occasionId") as string;
+  const year = Number(form.get("year"));
   const type = form.get("type") as MediaType;
   const url = (form.get("url") as string)?.trim();
   if (!url) throw new Error("A URL is required.");
+  if (!Number.isFinite(year) || year < 1900 || year > 2100) throw new Error("Invalid year.");
+
+  const nowYear = new Date().getFullYear();
+  const autoStatus: SessionStatus = year > nowYear ? "upcoming" : year === nowYear ? "ongoing" : "completed";
+
+  let session = await prisma.session.findUnique({
+    where: { occasionId_year: { occasionId, year } },
+  });
+  if (!session) {
+    session = await prisma.session.create({
+      data: { occasionId, year, title: String(year), status: autoStatus },
+    });
+  }
 
   await prisma.media.create({
-    data: { sessionId, type, url, addedById: user.id },
+    data: { sessionId: session.id, type, url, addedById: user.id },
   });
 
   if (type === "live") {
     await notifyAllMembers("live_started", "A live stream has started! 📺");
   }
-  revalidatePath(`/occasions`);
-  revalidatePath(`/occasions/${form.get("occasionId")}/${sessionId}`);
+  revalidatePath(`/occasions/${occasionId}`);
 }
 
 // Media-module admin flags a locked record for Super Admin to correct (doc §2.4A).
