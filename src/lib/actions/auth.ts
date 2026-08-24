@@ -2,8 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { notifyMemberReviewers } from "@/lib/notify";
 
 export type ActionState = { error?: string; success?: string };
@@ -118,4 +120,18 @@ export async function loginSuperAdmin(
 
   revalidatePath("/", "layout");
   redirect("/admin");
+}
+
+export async function setPreviewMode(role: "guest" | "member") {
+  const user = await getCurrentUser();
+  if (user?.role !== "superadmin") return;
+  const cookieStore = await cookies();
+  cookieStore.set("vp_preview", role, { path: "/", httpOnly: true, sameSite: "lax" });
+  revalidatePath("/", "layout");
+}
+
+export async function clearPreviewMode() {
+  const cookieStore = await cookies();
+  cookieStore.delete("vp_preview");
+  revalidatePath("/", "layout");
 }

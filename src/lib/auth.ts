@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import type { Module, Role } from "@/generated/prisma/enums";
@@ -41,4 +42,18 @@ export function canCreateInModule(user: AppUser | null, module: Module): boolean
   if (user.role === "superadmin") return true;
   if (user.role !== "admin") return false;
   return user.permissions.some((p) => p.module === module);
+}
+
+// Returns the real user plus an optional previewAs override (Super Admin only).
+// Components use previewAs to render what a guest/member would see.
+// Server actions always call getCurrentUser() directly — preview never bypasses auth.
+export async function getViewerContext() {
+  const user = await getCurrentUser();
+  let previewAs: "guest" | "member" | null = null;
+  if (user?.role === "superadmin") {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get("vp_preview")?.value ?? "";
+    if (raw === "guest" || raw === "member") previewAs = raw;
+  }
+  return { user, previewAs };
 }
