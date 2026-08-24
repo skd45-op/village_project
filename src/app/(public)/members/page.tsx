@@ -7,11 +7,13 @@ export const dynamic = "force-dynamic";
 export default async function MembersPage() {
   const { user, previewAs } = await getViewerContext();
 
-  // Determine what the effective viewer can see based on real role or preview override.
   const full =
     previewAs === "member" ? true :
     previewAs === "guest"  ? false :
     isMemberOrAbove(user);
+
+  // Only the super admin (viewing directly, not in preview) sees internal role labels.
+  const showRealRoles = !previewAs && user?.role === "superadmin";
 
   const members = await prisma.user.findMany({
     where: { status: "active", role: { in: ["member", "admin", "superadmin"] } },
@@ -40,9 +42,11 @@ export default async function MembersPage() {
                 <p className="truncate font-medium">
                   {m.firstName} {m.lastName}
                 </p>
-                {/* Role badge only shown to member+ viewers — guests see name+photo only */}
+                {/* Role badge: SA sees real roles; members see "Committee"; guests see nothing */}
                 {full && m.role !== "member" && (
-                  <Badge tone={m.role === "superadmin" ? "red" : "blue"}>{m.role}</Badge>
+                  <Badge tone={showRealRoles && m.role === "superadmin" ? "red" : "blue"}>
+                    {showRealRoles ? m.role : "Committee"}
+                  </Badge>
                 )}
                 {full && (
                   <p className="mt-0.5 truncate text-sm text-neutral-500">{m.mobile ?? "—"}</p>

@@ -1,12 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { PageHeader, Card, CardBody, Badge } from "@/components/ui/primitives";
+import { PageHeader, Card, CardBody } from "@/components/ui/primitives";
 import { ContactForm } from "./contact-form";
+
+export const dynamic = "force-dynamic";
 
 export default async function ContactPage() {
   const committee = await prisma.user.findMany({
     where: { status: "active", role: { in: ["admin", "superadmin"] } },
-    orderBy: { role: "desc" },
-    select: { id: true, firstName: true, lastName: true, role: true },
+    orderBy: { firstName: "asc" },
+    select: { id: true, firstName: true, lastName: true },
   });
 
   return (
@@ -21,7 +23,7 @@ export default async function ContactPage() {
       </div>
 
       <div>
-        <PageHeader title="Committee" subtitle="Messages route here — no phone numbers shown" />
+        <PageHeader title="Our committee" subtitle="Your message will be reviewed by these members" />
         <Card>
           <CardBody>
             {committee.length === 0 ? (
@@ -29,9 +31,8 @@ export default async function ContactPage() {
             ) : (
               <ul className="divide-y divide-black/5 dark:divide-white/5">
                 {committee.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between py-2.5">
-                    <span>{c.firstName} {c.lastName}</span>
-                    <Badge tone={c.role === "superadmin" ? "red" : "blue"}>{c.role}</Badge>
+                  <li key={c.id} className="py-2.5 text-sm font-medium">
+                    {c.firstName} {c.lastName}
                   </li>
                 ))}
               </ul>

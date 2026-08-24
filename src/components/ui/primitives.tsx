@@ -83,10 +83,19 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
   );
 }
 
-export function Field({ label, htmlFor, children, hint }: { label: string; htmlFor?: string; children: ReactNode; hint?: string }) {
+export function Field({
+  label, htmlFor, children, hint, optional, required,
+}: {
+  label: string; htmlFor?: string; children: ReactNode;
+  hint?: string; optional?: boolean; required?: boolean;
+}) {
   return (
     <div>
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label htmlFor={htmlFor}>
+        {label}
+        {required && <span className="ml-0.5 text-red-500">*</span>}
+        {optional && <span className="ml-1 font-normal text-neutral-400 text-xs">(optional)</span>}
+      </Label>
       {children}
       {hint && <p className="mt-1 text-xs text-neutral-500">{hint}</p>}
     </div>

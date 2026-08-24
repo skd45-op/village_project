@@ -99,14 +99,14 @@ export default async function BudgetPage({
                   ))}
                 </Select>
               </Field>
-              <Field label="Amount (₹)">
+              <Field label="Amount (₹)" required>
                 <Input name="amount" type="number" step="0.01" min="0" required />
               </Field>
-              <Field label="Receipt/proof URL" hint="required">
+              <Field label="Receipt/proof URL" required>
                 <Input name="receiptUrl" type="url" required placeholder="https://…" />
               </Field>
               <div className="sm:col-span-2">
-                <Field label="Description" hint="optional">
+                <Field label="Description" optional>
                   <Textarea name="description" />
                 </Field>
               </div>

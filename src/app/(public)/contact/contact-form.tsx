@@ -14,20 +14,20 @@ export function ContactForm() {
   return (
     <form action={action} className="space-y-4">
       {state.error && <Alert tone="error">{state.error}</Alert>}
-      <Field label="Your name">
+      <Field label="Your name" required>
         <Input name="name" required />
       </Field>
-      <Field label="Email" hint="optional — so we can reply">
+      <Field label="Email" optional hint="So we can reply to you">
         <Input name="email" type="email" />
       </Field>
-      <Field label="To">
+      <Field label="To" required>
         <Select name="target" defaultValue="general">
           <option value="general">General</option>
           <option value="admin">Committee / Admin</option>
           <option value="member">Members</option>
         </Select>
       </Field>
-      <Field label="Message">
+      <Field label="Message" required>
         <Textarea name="message" required className="min-h-32" />
       </Field>
       <SubmitButton pendingText="Sending…">Send message</SubmitButton>

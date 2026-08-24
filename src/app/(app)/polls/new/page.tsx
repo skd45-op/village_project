@@ -14,13 +14,13 @@ export default async function NewPollPage() {
       <Card>
         <CardBody>
           <form action={createPoll} className="space-y-4">
-            <Field label="Question">
+            <Field label="Question" required>
               <Input name="title" required placeholder="Which date for the annual feast?" />
             </Field>
-            <Field label="Options" hint="one per line, at least two">
+            <Field label="Options" required hint="One per line, at least two">
               <Textarea name="options" required placeholder={"Saturday\nSunday"} className="min-h-32" />
             </Field>
-            <Field label="Closes at" hint="optional">
+            <Field label="Closes at" optional>
               <Input name="expiresAt" type="datetime-local" />
             </Field>
             <SubmitButton pendingText="Creating…">Create poll</SubmitButton>

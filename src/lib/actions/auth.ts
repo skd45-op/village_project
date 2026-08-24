@@ -127,7 +127,7 @@ export async function setPreviewMode(role: "guest" | "member") {
   if (user?.role !== "superadmin") return;
   const cookieStore = await cookies();
   cookieStore.set("vp_preview", role, { path: "/", httpOnly: true, sameSite: "lax" });
-  revalidatePath("/", "layout");
+  redirect("/");
 }
 
 export async function clearPreviewMode() {

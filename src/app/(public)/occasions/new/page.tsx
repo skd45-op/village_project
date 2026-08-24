@@ -14,13 +14,13 @@ export default async function NewOccasionPage() {
       <Card>
         <CardBody>
           <form action={createOccasion} className="space-y-4">
-            <Field label="Name">
+            <Field label="Name" required>
               <Input name="name" required placeholder="Ganesh Puja" />
             </Field>
-            <Field label="Description" hint="optional">
+            <Field label="Description" optional>
               <Textarea name="description" />
             </Field>
-            <Field label="Icon (emoji)" hint="optional, e.g. 🪔">
+            <Field label="Icon (emoji)" optional hint="e.g. 🪔">
               <Input name="iconUrl" placeholder="🪔" />
             </Field>
             <SubmitButton pendingText="Creating…">Create &amp; add a session</SubmitButton>
