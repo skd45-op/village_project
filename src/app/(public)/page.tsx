@@ -10,10 +10,11 @@ export default async function HomePage() {
 
   const effectiveRole = previewAs ?? user?.role ?? "guest";
   const effectiveStatus = previewAs ? "active" : (user?.status ?? "guest");
-  const isLoggedIn = !!user && !previewAs;
   const isActiveMember = effectiveStatus === "active" && ["member", "admin", "superadmin"].includes(effectiveRole);
   const isAdminOrSuper = !previewAs && (user?.role === "admin" || user?.role === "superadmin");
   const isPending = !!user && user.status === "pending" && !previewAs;
+  // Show "Become a member" only to real unauthenticated guests, or when SA previews as guest.
+  const showJoinCta = previewAs === "guest" || (!previewAs && !user);
 
   const [occasions, memberCount] = await Promise.all([
     prisma.occasion.findMany({
@@ -55,7 +56,7 @@ export default async function HomePage() {
           {isPending && (
             <ButtonLink href="/dashboard">Check your status</ButtonLink>
           )}
-          {!isLoggedIn && !isPending && (
+          {showJoinCta && (
             <ButtonLink href="/join">Become a member</ButtonLink>
           )}
         </div>

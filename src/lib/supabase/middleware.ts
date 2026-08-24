@@ -35,8 +35,12 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Routes that require a logged-in account.
-  const protectedPrefixes = ["/dashboard", "/budget", "/admin", "/polls"];
-  const isProtected = protectedPrefixes.some((p) => path.startsWith(p));
+  // Note: "/admin" is matched exactly + sub-routes to avoid catching "/admin-portal".
+  const protectedPrefixes = ["/dashboard", "/budget", "/polls"];
+  const isProtected =
+    protectedPrefixes.some((p) => path.startsWith(p)) ||
+    path === "/admin" ||
+    path.startsWith("/admin/");
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
