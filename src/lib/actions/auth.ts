@@ -90,3 +90,32 @@ export async function logout() {
   revalidatePath("/", "layout");
   redirect("/");
 }
+
+// Separate login for Super Admin. Signs in via Supabase, then verifies the
+// role in our DB. If the account isn't superadmin, signs out immediately.
+export async function loginSuperAdmin(
+  _prev: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const email = str(form, "email").toLowerCase();
+  const password = str(form, "password");
+
+  if (!email || !password) return { error: "Enter your email and password." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { error: error.message };
+
+  const authId = data.user?.id;
+  const dbUser = authId
+    ? await prisma.user.findUnique({ where: { authId }, select: { role: true } })
+    : null;
+
+  if (dbUser?.role !== "superadmin") {
+    await supabase.auth.signOut();
+    return { error: "Access denied. This portal is for Super Admin only." };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/admin");
+}

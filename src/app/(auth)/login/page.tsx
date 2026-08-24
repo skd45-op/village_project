@@ -14,7 +14,7 @@ export default async function LoginPage({
       <CardBody className="space-y-5">
         <div>
           <h1 className="text-xl font-semibold">Sign in</h1>
-          <p className="mt-1 text-sm text-neutral-500">Members, admins and committee.</p>
+          <p className="mt-1 text-sm text-neutral-500">Members and committee.</p>
         </div>
         <LoginForm next={next ?? "/dashboard"} />
         <p className="text-center text-sm text-neutral-500">
