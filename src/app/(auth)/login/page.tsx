@@ -19,7 +19,7 @@ export default async function LoginPage({
         <LoginForm next={next ?? "/dashboard"} />
         <p className="text-center text-sm text-neutral-500">
           New here?{" "}
-          <Link href="/join" className="font-medium text-emerald-600 hover:underline">
+          <Link href="/join" className="font-medium text-brand-600 hover:underline">
             Request membership
           </Link>
         </p>

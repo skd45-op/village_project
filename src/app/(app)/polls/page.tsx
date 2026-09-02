@@ -56,7 +56,7 @@ export default async function PollsPage() {
                       return (
                         <div key={o} className="flex items-center gap-3">
                           <div className="relative flex-1 overflow-hidden rounded-lg border border-black/10 dark:border-white/10">
-                            <div className="absolute inset-y-0 left-0 bg-emerald-100 dark:bg-emerald-950" style={{ width: `${pct}%` }} />
+                            <div className="absolute inset-y-0 left-0 bg-brand-100 dark:bg-brand-950" style={{ width: `${pct}%` }} />
                             <div className="relative flex items-center justify-between px-3 py-1.5 text-sm">
                               <span className={mine ? "font-semibold" : ""}>{mine ? "✓ " : ""}{o}</span>
                               <span className="text-neutral-500">{pct}% · {counts[i]}</span>

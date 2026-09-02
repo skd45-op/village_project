@@ -1,16 +1,9 @@
-import { prisma } from "@/lib/prisma";
 import { PageHeader, Card, CardBody } from "@/components/ui/primitives";
 import { ContactForm } from "./contact-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function ContactPage() {
-  const committee = await prisma.user.findMany({
-    where: { status: "active", role: { in: ["admin", "superadmin"] } },
-    orderBy: { firstName: "asc" },
-    select: { id: true, firstName: true, lastName: true },
-  });
-
   return (
     <div className="grid gap-8 md:grid-cols-2">
       <div>
@@ -23,20 +16,21 @@ export default async function ContactPage() {
       </div>
 
       <div>
-        <PageHeader title="Our committee" subtitle="Your message will be reviewed by these members" />
+        <PageHeader title="Who receives your message?" subtitle="Messages go directly to our admin team" />
         <Card>
-          <CardBody>
-            {committee.length === 0 ? (
-              <p className="text-sm text-neutral-500">Committee details coming soon.</p>
-            ) : (
-              <ul className="divide-y divide-black/5 dark:divide-white/5">
-                {committee.map((c) => (
-                  <li key={c.id} className="py-2.5 text-sm font-medium">
-                    {c.firstName} {c.lastName}
-                  </li>
-                ))}
-              </ul>
-            )}
+          <CardBody className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">👥</span>
+              <div>
+                <p className="font-semibold">Village Admin Team</p>
+                <p className="text-sm text-neutral-500">
+                  Our committee reviews all messages and responds within 1–2 days.
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-neutral-400">
+              No personal phone numbers or emails are shared publicly.
+            </p>
           </CardBody>
         </Card>
       </div>

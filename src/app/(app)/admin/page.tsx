@@ -70,6 +70,12 @@ export default async function AdminHome() {
             description="Add a new festival or community event"
           />
           <AdminTile
+            href="/updates"
+            icon="📣"
+            label="Post an announcement"
+            description="Share a meeting, aarti, or village update"
+          />
+          <AdminTile
             href="/polls/new"
             icon="📊"
             label="Create poll"
@@ -151,12 +157,12 @@ function AdminTile({
 }) {
   return (
     <Link href={href} className="group">
-      <Card className="h-full transition hover:border-emerald-400 hover:shadow-md">
+      <Card className="h-full transition hover:border-brand-400 hover:shadow-md">
         <CardBody className="space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xl">{icon}</span>
-              <p className="font-semibold group-hover:text-emerald-600 transition">{label}</p>
+              <p className="font-semibold group-hover:text-brand-600 transition">{label}</p>
             </div>
             {count != null && count > 0 && <Badge tone="amber">{count}</Badge>}
           </div>

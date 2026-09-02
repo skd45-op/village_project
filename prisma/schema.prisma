@@ -118,6 +118,7 @@ model User {
   pollsCreated     Poll[]              @relation("PollCreatedBy")
   pollVotes        PollVote[]
   notifications    Notification[]
+  announcements    Announcement[]      @relation("AnnouncementCreatedBy")
   grantsGiven      AdminPermission[]   @relation("GrantedBy")
 
   @@index([role])
@@ -309,6 +310,24 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
+}
+
+// Public, village-wide announcements shown on the homepage & /updates feed.
+// Distinct from per-user Notifications. Created by admins/super admin.
+model Announcement {
+  id        String    @id @default(uuid())
+  title     String
+  body      String
+  category  String    @default("general") // general | meeting | aarti | bhajan | event
+  happensAt DateTime? // optional date/time the thing happens
+  pinned    Boolean   @default(false) // surfaced in the homepage "happening soon" ticker
+  createdById String?
+  createdAt DateTime  @default(now())
+
+  createdBy User? @relation("AnnouncementCreatedBy", fields: [createdById], references: [id])
+
+  @@index([pinned, happensAt])
+  @@index([createdAt])
 }
 
 // ---------- Phase 2: Cricket (schema reserved; features built later) ----------

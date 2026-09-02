@@ -1,26 +1,178 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Kundapur design system — Tailwind v4 CSS-first theme.
+   Warm "cream" light theme (primary) + a refined charcoal/teal dark theme.
+   Brand = deep pine-teal; accents = gold, terracotta, plum.
+   ========================================================================== */
+
+@theme {
+  /* Fonts (wired to next/font variables in layout.tsx) */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+
+  /* Brand — deep pine teal */
+  --color-brand-50: #ecf4ef;
+  --color-brand-100: #d3e6dc;
+  --color-brand-200: #a7ccb9;
+  --color-brand-300: #74ab93;
+  --color-brand-400: #4a8a71;
+  --color-brand-500: #316d57;
+  --color-brand-600: #245846;
+  --color-brand-700: #1a4739;
+  --color-brand-800: #123a2f;
+  --color-brand-900: #0d2c24;
+  --color-brand-950: #071c17;
+
+  /* Accents */
+  --color-gold: #e0a83e;
+  --color-gold-600: #c88f28;
+  --color-terracotta: #c65a3a;
+  --color-terracotta-600: #ad4a2d;
+  --color-plum: #4a2c47;
+  --color-plum-700: #3a2138;
+
+  /* Warm neutrals */
+  --color-cream: #f7f3ec;
+  --color-sand: #efe9de;
+  --color-ink: #1c1c1a;
+
+  /* Radii */
+  --radius-xl: 0.9rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+}
+
+/* Semantic surface tokens that flip between light and dark */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f3ec;
+  --foreground: #1c1c1a;
+  --surface: #ffffff;
+  --muted: #6b6a64;
+  --hairline: rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e1512;
+    --foreground: #ececea;
+    --surface: #16211c;
+    --muted: #9aa39d;
+    --hairline: rgba(255, 255, 255, 0.1);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Reusable helpers ---- */
+
+/* Small uppercase tracked label used above section headings */
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Editorial display headings */
+.font-display {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+}
+
+/* Break a section out of the centered container to span the full viewport width.
+   Parent chain uses overflow-x:hidden so the 100vw doesn't cause a scrollbar. */
+.full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+/* Concentric ring texture for dark hero / CTA bands */
+.ring-field {
+  background-image:
+    radial-gradient(circle at var(--rx, 78%) var(--ry, 38%), rgba(224, 168, 62, 0.18), transparent 45%),
+    repeating-radial-gradient(circle at var(--rx, 78%) var(--ry, 38%),
+      transparent 0 78px, rgba(255, 255, 255, 0.045) 78px 79px);
+}
+
+/* Soft grain-free paper vignette for cream sections */
+.paper {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(18, 58, 47, 0.04), transparent 60%),
+    var(--background);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .float-slow { animation: float 9s ease-in-out infinite; }
+  .anim-sun { transform-box: fill-box; transform-origin: center; animation: sun-pulse 6s ease-in-out infinite; }
+  .anim-twinkle { animation: twinkle 3.5s ease-in-out infinite; }
+  .anim-drift-slow { animation: drift 16s ease-in-out infinite; }
+  .anim-drift-fast { animation: drift 11s ease-in-out infinite reverse; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes sun-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.95; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@keyframes drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(14px); }
+}
+
+/* 3D tilt card — perspective wrapper; the inner element is rotated via JS.
+   Motion is disabled automatically for reduced-motion users. */
+.tilt {
+  perspective: 900px;
+}
+.tilt-inner {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Scroll reveal — starts hidden, `.is-visible` animates it in. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.reveal.is-visible {
+  animation: reveal-up 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes reveal-up {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Auto-scrolling photo band (marquee). Track holds two copies; shift by -50%. */
+.animate-marquee { animation: marquee 45s linear infinite; }
+.marquee-pause:hover .animate-marquee { animation-play-state: paused; }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-slow, .anim-sun, .anim-twinkle, .anim-drift-slow, .anim-drift-fast, .animate-marquee { animation: none !important; }
+  .reveal { opacity: 1; transform: none; }
+  .tilt-inner { transition: none; }
 }

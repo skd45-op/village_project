@@ -2,22 +2,20 @@
 
 import { useActionState } from "react";
 import { loginSuperAdmin, type ActionState } from "@/lib/actions/auth";
+import { ValidatedForm, useFieldError } from "@/components/ui/primitives";
 
 export function AdminLoginForm() {
   const [state, action] = useActionState<ActionState, FormData>(loginSuperAdmin, {});
 
   return (
-    <form action={action} className="space-y-4">
+    <ValidatedForm action={action} className="space-y-4">
       {state.error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {state.error}
         </div>
       )}
 
-      <div className="space-y-1.5">
-        <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400">
-          Email
-        </label>
+      <DarkField name="email" label="Email">
         <input
           name="email"
           type="email"
@@ -26,12 +24,9 @@ export function AdminLoginForm() {
           className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50"
           placeholder="superadmin@example.com"
         />
-      </div>
+      </DarkField>
 
-      <div className="space-y-1.5">
-        <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400">
-          Password
-        </label>
+      <DarkField name="password" label="Password">
         <input
           name="password"
           type="password"
@@ -40,7 +35,7 @@ export function AdminLoginForm() {
           className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50"
           placeholder="••••••••"
         />
-      </div>
+      </DarkField>
 
       <button
         type="submit"
@@ -48,6 +43,28 @@ export function AdminLoginForm() {
       >
         Access Admin Panel →
       </button>
-    </form>
+    </ValidatedForm>
+  );
+}
+
+// Dark-themed field with inline validation, matching the admin portal styling.
+function DarkField({
+  name,
+  label,
+  children,
+}: {
+  name: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const error = useFieldError(name);
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400">
+        {label}
+      </label>
+      {children}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </div>
   );
 }

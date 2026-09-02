@@ -4,7 +4,7 @@ import { getCurrentUser, isMemberOrAbove, canCreateInModule } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSessionBudget } from "@/lib/budget";
 import { addBudgetEntry, addDonation } from "@/lib/actions/budget";
-import { PageHeader, Card, CardBody, Badge, Field, Input, Select, Textarea, EmptyState, Alert } from "@/components/ui/primitives";
+import { PageHeader, Card, CardBody, Badge, Field, Input, Select, Textarea, EmptyState, Alert, ValidatedForm } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { BUDGET_CATEGORIES } from "@/lib/constants";
@@ -34,7 +34,7 @@ export default async function BudgetPage({
           <div className="grid gap-3 sm:grid-cols-2">
             {sessions.map((s) => (
               <Link key={s.id} href={`/budget?session=${s.id}`}>
-                <Card className="transition hover:border-emerald-400 hover:shadow">
+                <Card className="transition hover:border-brand-400 hover:shadow">
                   <CardBody>
                     <p className="font-medium">{s.title}</p>
                     <p className="text-sm text-neutral-500">{s.occasion.name} · {s.year}</p>
@@ -72,7 +72,7 @@ export default async function BudgetPage({
         subtitle={`${session.occasion.name} · ${session.year}`}
         action={<ButtonLink href={`/budget/${session.id}/statement`} variant="secondary" size="sm">Statement (PDF)</ButtonLink>}
       />
-      <Link href="/budget" className="text-sm text-emerald-600 hover:underline">← All sessions</Link>
+      <Link href="/budget" className="text-sm text-brand-600 hover:underline">← All sessions</Link>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <SummaryCard label="Total Income" value={formatMoney(income)} tone="green" />
@@ -84,36 +84,36 @@ export default async function BudgetPage({
         <Card>
           <CardBody>
             <h2 className="mb-3 font-semibold">Add entry</h2>
-            <form action={addBudgetEntry} className="grid gap-3 sm:grid-cols-2">
+            <ValidatedForm action={addBudgetEntry} className="grid gap-3 sm:grid-cols-2">
               <input type="hidden" name="sessionId" value={session.id} />
-              <Field label="Type">
+              <Field label="Type" name="type">
                 <Select name="type" defaultValue="income">
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
                 </Select>
               </Field>
-              <Field label="Category">
+              <Field label="Category" name="category">
                 <Select name="category" defaultValue={BUDGET_CATEGORIES[0]}>
                   {BUDGET_CATEGORIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </Select>
               </Field>
-              <Field label="Amount (₹)" required>
+              <Field label="Amount (₹)" name="amount" required>
                 <Input name="amount" type="number" step="0.01" min="0" required />
               </Field>
-              <Field label="Receipt/proof URL" required>
+              <Field label="Receipt/proof URL" name="receiptUrl" required>
                 <Input name="receiptUrl" type="url" required placeholder="https://…" />
               </Field>
               <div className="sm:col-span-2">
-                <Field label="Description" optional>
+                <Field label="Description" name="description" optional>
                   <Textarea name="description" />
                 </Field>
               </div>
               <div className="sm:col-span-2">
                 <SubmitButton pendingText="Adding…">Add entry</SubmitButton>
               </div>
-            </form>
+            </ValidatedForm>
           </CardBody>
         </Card>
       )}
@@ -134,7 +134,7 @@ export default async function BudgetPage({
                       {entry.description && <span className="text-neutral-500"> · {entry.description}</span>}
                       <p className="mt-0.5 text-xs text-neutral-400">
                         {formatDate(entry.addedAt)} · by {entry.addedBy?.firstName ?? "—"} ·{" "}
-                        <a href={entry.receiptUrl ?? "#"} className="text-emerald-600 hover:underline" target="_blank" rel="noreferrer">receipt</a>
+                        <a href={entry.receiptUrl ?? "#"} className="text-brand-600 hover:underline" target="_blank" rel="noreferrer">receipt</a>
                       </p>
                     </div>
                     <div className="text-right">
@@ -157,7 +157,7 @@ export default async function BudgetPage({
           )}
           {user!.role === "superadmin" && (
             <p className="mt-3 text-xs text-neutral-500">
-              To fix an entry, add a correction from <Link href="/admin/corrections" className="text-emerald-600 hover:underline">Budget corrections</Link>. Entries are never edited or deleted.
+              To fix an entry, add a correction from <Link href="/admin/corrections" className="text-brand-600 hover:underline">Budget corrections</Link>. Entries are never edited or deleted.
             </p>
           )}
         </CardBody>
@@ -210,7 +210,7 @@ function SummaryCard({ label, value, tone }: { label: string; value: string; ton
     <Card>
       <CardBody>
         <p className="text-sm text-neutral-500">{label}</p>
-        <p className={`mt-1 text-xl font-semibold ${tone === "green" ? "text-emerald-600" : "text-red-600"}`}>{value}</p>
+        <p className={`mt-1 text-xl font-semibold ${tone === "green" ? "text-brand-600" : "text-red-600"}`}>{value}</p>
       </CardBody>
     </Card>
   );

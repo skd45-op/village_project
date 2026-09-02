@@ -64,7 +64,7 @@ export default async function PermissionsPage() {
                             className={cn(
                               "rounded-full border px-3 py-1 text-xs font-medium transition",
                               on
-                                ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                                ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300"
                                 : "border-black/15 text-neutral-500 hover:bg-neutral-50 dark:border-white/15 dark:hover:bg-neutral-800",
                             )}
                             title={m.description}

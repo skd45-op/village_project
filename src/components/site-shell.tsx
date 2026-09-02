@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { PreviewBanner } from "@/components/preview-banner";
 import { getViewerContext } from "@/lib/auth";
 
 export async function SiteShell({ children }: { children: ReactNode }) {
   const { previewAs } = await getViewerContext();
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col overflow-x-hidden">
       {previewAs && <PreviewBanner previewAs={previewAs} />}
       <SiteNav />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
-      <footer className="border-t border-black/10 py-6 text-center text-xs text-neutral-400 dark:border-white/10">
-        Village Community Platform · Built for our village 🪔
-      </footer>
+      {/* Padded by default so content pages read comfortably; full-bleed sections
+          (the homepage hero/bands) opt out with the `.full-bleed` utility. */}
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">{children}</main>
+      <SiteFooter />
     </div>
   );
 }

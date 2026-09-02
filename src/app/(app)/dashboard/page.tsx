@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                 <form action={setPreviewMode.bind(null, "member")}>
                   <button
                     type="submit"
-                    className="rounded-full border border-emerald-400 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 transition dark:text-emerald-300 dark:hover:bg-emerald-950"
+                    className="rounded-full border border-brand-400 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 transition dark:text-brand-300 dark:hover:bg-brand-950"
                   >
                     View as Member
                   </button>
@@ -204,7 +204,7 @@ function StatCard({ label, value, highlight }: { label: string; value: number; h
 function AdminTile({ href, label, count }: { href: string; label: string; count?: number }) {
   return (
     <Link href={href}>
-      <Card className="transition hover:border-emerald-400 hover:shadow">
+      <Card className="transition hover:border-brand-400 hover:shadow">
         <CardBody className="flex items-center justify-between">
           <span className="text-sm font-medium">{label}</span>
           {count != null && count > 0 && (
@@ -219,7 +219,7 @@ function AdminTile({ href, label, count }: { href: string; label: string; count?
 function QuickLink({ href, title, hint }: { href: string; title: string; hint: string }) {
   return (
     <Link href={href}>
-      <Card className="transition hover:border-emerald-400 hover:shadow">
+      <Card className="transition hover:border-brand-400 hover:shadow">
         <CardBody>
           <p className="font-medium">{title}</p>
           <p className="mt-0.5 text-sm text-neutral-500">{hint}</p>

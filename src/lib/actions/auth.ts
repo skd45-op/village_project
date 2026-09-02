@@ -28,6 +28,9 @@ export async function register(_prev: ActionState, form: FormData): Promise<Acti
   if (!email || !password || !firstName || !lastName || !mobile) {
     return { error: "Please fill in name, email, password and mobile number." };
   }
+  if (!photoUrl) {
+    return { error: "Please upload a profile photo." };
+  }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
   }

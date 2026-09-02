@@ -1,9 +1,15 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, LabelHTMLAttributes } from "react";
 
+// Standard page-width wrapper. Content pages wrap themselves in this; the shell
+// no longer clamps width, so full-bleed sections (the homepage) can break out.
+export function Container({ className, children }: { className?: string; children: ReactNode }) {
+  return <div className={cn("mx-auto w-full max-w-6xl px-4 sm:px-6", className)}>{children}</div>;
+}
+
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cn("rounded-xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-900", className)}>
+    <div className={cn("rounded-2xl border border-black/[0.07] bg-surface shadow-sm dark:border-white/10", className)}>
       {children}
     </div>
   );
@@ -15,22 +21,74 @@ export function CardBody({ className, children }: { className?: string; children
 
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-neutral-500">{subtitle}</p>}
+        <h1 className="font-display text-3xl font-semibold tracking-tight">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
       </div>
       {action}
     </div>
   );
 }
 
+// Eyebrow + big display heading, used to open sections (matches the reference).
+export function SectionHeading({
+  eyebrow,
+  title,
+  accent,
+  align = "left",
+  tone = "terracotta",
+  className,
+}: {
+  eyebrow?: string;
+  title: ReactNode;
+  accent?: string;
+  align?: "left" | "center";
+  tone?: "terracotta" | "gold" | "brand";
+  className?: string;
+}) {
+  const accentColor =
+    tone === "gold" ? "text-gold-600" : tone === "brand" ? "text-brand-700" : "text-terracotta";
+  return (
+    <div className={cn(align === "center" && "text-center", className)}>
+      {eyebrow && <p className={cn("eyebrow mb-3", accentColor)}>{eyebrow}</p>}
+      <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+        {title}
+        {accent && <span className={cn("block", accentColor)}>{accent}</span>}
+      </h2>
+    </div>
+  );
+}
+
+// Big-number stat tile for the homepage / dashboards.
+export function StatTile({
+  icon,
+  value,
+  label,
+  className,
+}: {
+  icon?: ReactNode;
+  value: ReactNode;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-col gap-2", className)}>
+      {icon && <div className="text-2xl text-terracotta">{icon}</div>}
+      <div className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">{value}</div>
+      <div className="text-sm text-muted">{label}</div>
+    </div>
+  );
+}
+
 const badgeTones: Record<string, string> = {
-  neutral: "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
-  green: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+  neutral: "bg-black/[0.06] text-neutral-700 dark:bg-white/10 dark:text-neutral-300",
+  green: "bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-200",
   amber: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
   red: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
   blue: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  brand: "bg-brand-800 text-white",
+  gold: "bg-gold/15 text-gold-600",
 };
 
 export function Badge({ tone = "neutral", children }: { tone?: keyof typeof badgeTones; children: ReactNode }) {
@@ -39,7 +97,7 @@ export function Badge({ tone = "neutral", children }: { tone?: keyof typeof badg
 
 const alertTones: Record<string, string> = {
   info: "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-200",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200",
+  success: "border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900 dark:bg-brand-950/50 dark:text-brand-200",
   error: "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-200",
 };
 
@@ -49,9 +107,9 @@ export function Alert({ tone = "info", children }: { tone?: keyof typeof alertTo
 
 export function EmptyState({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-black/15 p-10 text-center dark:border-white/15">
+    <div className="rounded-2xl border border-dashed border-black/15 p-10 text-center dark:border-white/15">
       <p className="font-medium text-neutral-600 dark:text-neutral-300">{title}</p>
-      {hint && <p className="mt-1 text-sm text-neutral-500">{hint}</p>}
+      {hint && <p className="mt-1 text-sm text-muted">{hint}</p>}
     </div>
   );
 }
@@ -65,7 +123,7 @@ export function Label({ className, children, ...props }: LabelHTMLAttributes<HTM
 }
 
 const fieldStyles =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60 dark:border-white/15 dark:bg-neutral-950";
+  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 disabled:opacity-60 dark:border-white/15 dark:bg-neutral-950";
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(fieldStyles, className)} {...props} />;
@@ -83,21 +141,7 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
   );
 }
 
-export function Field({
-  label, htmlFor, children, hint, optional, required,
-}: {
-  label: string; htmlFor?: string; children: ReactNode;
-  hint?: string; optional?: boolean; required?: boolean;
-}) {
-  return (
-    <div>
-      <Label htmlFor={htmlFor}>
-        {label}
-        {required && <span className="ml-0.5 text-red-500">*</span>}
-        {optional && <span className="ml-1 font-normal text-neutral-400 text-xs">(optional)</span>}
-      </Label>
-      {children}
-      {hint && <p className="mt-1 text-xs text-neutral-500">{hint}</p>}
-    </div>
-  );
-}
+// Field, ValidatedForm and useFieldError live in ./field (client-only, they use
+// React context for inline validation). Re-exported here so existing imports from
+// "@/components/ui/primitives" keep working.
+export { Field, ValidatedForm, useFieldError } from "./field";

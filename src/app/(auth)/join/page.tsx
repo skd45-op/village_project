@@ -15,7 +15,7 @@ export default function JoinPage() {
         <JoinForm />
         <p className="text-center text-sm text-neutral-500">
           Already a member?{" "}
-          <Link href="/login" className="font-medium text-emerald-600 hover:underline">
+          <Link href="/login" className="font-medium text-brand-600 hover:underline">
             Sign in
           </Link>
         </p>

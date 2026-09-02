@@ -1,5 +1,12 @@
 import type { Module } from "@/generated/prisma/enums";
 
+// Supabase Storage bucket that holds uploaded occasion photos.
+export const MEDIA_BUCKET = "occasion-media";
+
+// Supabase Storage bucket for profile photos (avatars). Uploads are allowed for
+// anonymous users too, because the join/signup form runs before authentication.
+export const AVATAR_BUCKET = "avatars";
+
 // Modules an Admin can be granted (doc §2.2).
 export const MODULES: { value: Module; label: string; description: string }[] = [
   { value: "media", label: "Media", description: "Add photos / YouTube links / mark a session live" },

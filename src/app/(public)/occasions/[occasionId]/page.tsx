@@ -1,10 +1,12 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, canCreateInModule } from "@/lib/auth";
-import { addMedia, deleteMedia } from "@/lib/actions/occasions";
-import { youtubeEmbedUrl } from "@/lib/display";
-import { Card, CardBody, Field, Input, Select } from "@/components/ui/primitives";
+import { deleteMedia } from "@/lib/actions/occasions";
+import { youtubeEmbedUrl, occasionGradient } from "@/lib/display";
+import { Card, CardBody } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { AddMediaForm } from "./add-media-form";
 
 export const dynamic = "force-dynamic";
 
@@ -47,34 +49,35 @@ export default async function OccasionPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <p className="text-sm text-neutral-500 mb-1">
-          <a href="/occasions" className="hover:underline">Occasions</a> /
+      {/* Gradient header banner */}
+      <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${occasionGradient(occasion.id)} px-7 py-10 text-white shadow-lg`}>
+        <span className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
+        <p className="relative mb-2 text-sm text-white/70">
+          <Link href="/occasions" className="hover:underline">Occasions</Link> /
         </p>
-        <h1 className="text-2xl font-bold">
+        <h1 className="relative font-display text-4xl font-semibold">
           {occasion.iconUrl ? `${occasion.iconUrl} ` : ""}
           {occasion.name}
         </h1>
         {occasion.description && (
-          <p className="mt-1 text-neutral-500">{occasion.description}</p>
+          <p className="relative mt-2 max-w-2xl text-white/80">{occasion.description}</p>
         )}
       </div>
 
       {/* Year tabs */}
       <div className="flex gap-2 flex-wrap">
         {allYears.map((y) => (
-          <a
+          <Link
             key={y}
             href={`/occasions/${occasionId}?year=${y}`}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
               y === selectedYear
-                ? "bg-emerald-600 text-white"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                ? "bg-brand-800 text-white"
+                : "bg-black/[0.05] text-neutral-600 hover:bg-black/10 dark:bg-white/10 dark:text-neutral-300 dark:hover:bg-white/20"
             }`}
           >
             {y}
-          </a>
+          </Link>
         ))}
       </div>
 
@@ -83,25 +86,13 @@ export default async function OccasionPage({
         <Card>
           <CardBody>
             <h2 className="mb-3 text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wide">
-              Add media for {selectedYear}
+              Add media
             </h2>
-            <form action={addMedia} className="space-y-3">
-              <input type="hidden" name="occasionId" value={occasionId} />
-              <input type="hidden" name="year" value={selectedYear} />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Type">
-                  <Select name="type" defaultValue="photo">
-                    <option value="photo">Photo (image URL)</option>
-                    <option value="yt_link">YouTube video</option>
-                    <option value="live">Live stream</option>
-                  </Select>
-                </Field>
-                <Field label="URL">
-                  <Input name="url" required placeholder="https://…" />
-                </Field>
-              </div>
-              <SubmitButton pendingText="Adding…">Add media</SubmitButton>
-            </form>
+            <AddMediaForm
+              occasionId={occasionId}
+              currentYear={currentYear}
+              selectedYear={selectedYear}
+            />
           </CardBody>
         </Card>
       )}

@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest) {
 
   // Routes that require a logged-in account.
   // Note: "/admin" is matched exactly + sub-routes to avoid catching "/admin-portal".
-  const protectedPrefixes = ["/dashboard", "/budget", "/polls"];
+  const protectedPrefixes = ["/dashboard", "/budget", "/polls", "/profile"];
   const isProtected =
     protectedPrefixes.some((p) => path.startsWith(p)) ||
     path === "/admin" ||

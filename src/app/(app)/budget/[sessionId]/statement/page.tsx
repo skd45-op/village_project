@@ -18,7 +18,7 @@ export default async function StatementPage({
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <a href={`/budget?session=${session.id}`} className="text-sm text-emerald-600 hover:underline">← Back</a>
+        <a href={`/budget?session=${session.id}`} className="text-sm text-brand-600 hover:underline">← Back</a>
         <PrintButton />
       </div>
 

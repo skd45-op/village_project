@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, canCreateInModule } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { setContactStatus } from "@/lib/actions/contact";
 import { PageHeader, Card, CardBody, Badge, EmptyState } from "@/components/ui/primitives";
@@ -10,7 +10,8 @@ const tone = { new: "amber", read: "blue", resolved: "green" } as const;
 
 export default async function AdminContactPage() {
   const user = await getCurrentUser();
-  if (user?.role !== "superadmin") redirect("/dashboard");
+  // Super Admin, or an admin granted the Members module.
+  if (!canCreateInModule(user, "members")) redirect("/dashboard");
 
   const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" }, take: 100 });
 
@@ -28,7 +29,7 @@ export default async function AdminContactPage() {
                   <div>
                     <span className="font-medium">{m.name}</span>
                     {m.email && <span className="text-sm text-neutral-500"> · {m.email}</span>}
-                    <span className="text-sm text-neutral-400"> · to {m.target} · {formatDate(m.createdAt)}</span>
+                    <span className="text-sm text-neutral-400"> · {formatDate(m.createdAt)}</span>
                   </div>
                   <Badge tone={tone[m.status]}>{m.status}</Badge>
                 </div>

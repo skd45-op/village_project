@@ -3,11 +3,12 @@ import { getViewerContext } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logout, setPreviewMode } from "@/lib/actions/auth";
 import { ButtonLink } from "@/components/ui/button";
+import { OmMark } from "@/components/brand/om-mark";
+import { NotificationBell } from "@/components/notification-bell";
 
 export async function SiteNav() {
   const { user, previewAs } = await getViewerContext();
 
-  // When Super Admin is in preview mode, render nav as that role would see it
   const effectiveRole = previewAs ?? user?.role ?? "guest";
   const effectiveStatus = previewAs ? "active" : (user?.status ?? "guest");
 
@@ -15,92 +16,103 @@ export async function SiteNav() {
   const isAdmin = !previewAs && (effectiveRole === "admin" || effectiveRole === "superadmin");
   const isSuper = !previewAs && effectiveRole === "superadmin";
 
-  const unread =
-    user && !previewAs
-      ? await prisma.notification.count({ where: { userId: user.id, read: false } })
-      : 0;
+  const showBell = !!user && !previewAs;
+  const notifications = showBell
+    ? await prisma.notification.findMany({
+        where: { userId: user!.id },
+        orderBy: { createdAt: "desc" },
+        take: 12,
+        select: { id: true, message: true, type: true, read: true, createdAt: true },
+      })
+    : [];
+  const unread = notifications.filter((n) => !n.read).length;
 
-  const links = [
-    { href: "/", label: "Home", show: true },
+  // Primary links (left cluster) + the "Contact" utility link (right cluster).
+  const primary = [
     { href: "/occasions", label: "Occasions", show: true },
-    { href: "/members", label: "Members", show: true },
+    { href: "/updates", label: "Updates", show: true },
+    { href: "/members", label: "People", show: true },
+    { href: "/polls", label: "Polls", show: true },
     { href: "/budget", label: "Budget", show: isMember },
-    { href: "/polls", label: "Polls", show: isMember },
-    { href: "/contact", label: "Contact", show: true },
     { href: "/admin", label: "Admin", show: isAdmin },
-  ];
+  ].filter((l) => l.show);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-black/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-neutral-950/90">
-      <nav className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
-        <Link href="/" className="shrink-0 font-semibold tracking-tight">
-          🪔 Village
+    <header className="sticky top-0 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--background)]/80 backdrop-blur-md">
+      <nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
+        {/* Brand */}
+        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <OmMark />
+          <span className="leading-tight">
+            <span className="block font-semibold tracking-tight">Kundapur</span>
+            <span className="block text-[0.62rem] font-medium uppercase tracking-[0.18em] text-muted">
+              Village Connect
+            </span>
+          </span>
         </Link>
 
-        <div className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-          {links
-            .filter((l) => l.show)
-            .map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="text-neutral-600 hover:text-emerald-600 dark:text-neutral-300"
-              >
-                {l.label}
-              </Link>
-            ))}
+        {/* Primary links */}
+        <div className="ml-4 hidden flex-1 items-center gap-x-5 gap-y-1 text-sm md:flex">
+          {primary.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="font-medium text-foreground/70 transition hover:text-terracotta"
+            >
+              {l.label}
+            </Link>
+          ))}
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        {/* Right cluster */}
+        <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-0">
+          <span className="hidden h-5 w-px bg-[color:var(--hairline)] md:block" />
+          <Link
+            href="/contact"
+            className="hidden text-sm font-medium text-foreground/70 transition hover:text-terracotta sm:block"
+          >
+            Contact
+          </Link>
+
           {user ? (
             <>
-              {/* Super Admin preview toggle — only shown when not already in preview */}
               {isSuper && (
-                <div className="flex items-center gap-1 text-xs">
+                <div className="hidden items-center gap-1 text-xs lg:flex">
                   <form action={setPreviewMode.bind(null, "member")}>
-                    <button
-                      type="submit"
-                      className="rounded-full border border-neutral-200 px-2.5 py-1 text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition dark:border-neutral-700 dark:text-neutral-400"
-                    >
+                    <button className="rounded-full border border-[color:var(--hairline)] px-2.5 py-1 text-muted transition hover:border-brand-400 hover:text-brand-700">
                       View as Member
                     </button>
                   </form>
                   <form action={setPreviewMode.bind(null, "guest")}>
-                    <button
-                      type="submit"
-                      className="rounded-full border border-neutral-200 px-2.5 py-1 text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 transition dark:border-neutral-700 dark:text-neutral-400"
-                    >
+                    <button className="rounded-full border border-[color:var(--hairline)] px-2.5 py-1 text-muted transition hover:border-brand-400 hover:text-brand-700">
                       View as Guest
                     </button>
                   </form>
                 </div>
               )}
-
+              {showBell && <NotificationBell notifications={notifications} unread={unread} />}
               <Link
                 href="/dashboard"
-                className="relative text-sm text-neutral-600 hover:text-emerald-600 dark:text-neutral-300"
+                className="text-sm font-medium text-foreground/80 transition hover:text-terracotta"
               >
                 {user.firstName}
-                {unread > 0 && (
-                  <span className="absolute -right-3 -top-2 rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white">
-                    {unread}
-                  </span>
-                )}
               </Link>
+              {!previewAs && (
+                <Link
+                  href="/profile"
+                  className="hidden text-sm text-muted transition hover:text-terracotta sm:block"
+                >
+                  Profile
+                </Link>
+              )}
               <form action={logout}>
-                <button className="text-sm text-neutral-500 hover:text-red-600">Sign out</button>
+                <button className="text-sm text-muted transition hover:text-red-600">Sign out</button>
               </form>
             </>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-sm text-neutral-600 hover:text-emerald-600 dark:text-neutral-300"
-              >
-                Sign in
-              </Link>
-              <ButtonLink href="/join" size="sm">Join</ButtonLink>
-            </>
+            <ButtonLink href="/join" size="sm">
+              Join our village <span aria-hidden>→</span>
+            </ButtonLink>
           )}
         </div>
       </nav>

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, canCreateInModule } from "@/lib/auth";
 import { createPoll } from "@/lib/actions/polls";
-import { PageHeader, Card, CardBody, Field, Input, Textarea } from "@/components/ui/primitives";
+import { PageHeader, Card, CardBody, Field, Input, Textarea, ValidatedForm } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function NewPollPage() {
@@ -13,18 +13,18 @@ export default async function NewPollPage() {
       <PageHeader title="New Poll" subtitle="Members-only. Guests never vote." />
       <Card>
         <CardBody>
-          <form action={createPoll} className="space-y-4">
-            <Field label="Question" required>
+          <ValidatedForm action={createPoll} className="space-y-4">
+            <Field label="Question" name="title" required>
               <Input name="title" required placeholder="Which date for the annual feast?" />
             </Field>
-            <Field label="Options" required hint="One per line, at least two">
+            <Field label="Options" name="options" required hint="One per line, at least two">
               <Textarea name="options" required placeholder={"Saturday\nSunday"} className="min-h-32" />
             </Field>
-            <Field label="Closes at" optional>
+            <Field label="Closes at" name="expiresAt" optional>
               <Input name="expiresAt" type="datetime-local" />
             </Field>
             <SubmitButton pendingText="Creating…">Create poll</SubmitButton>
-          </form>
+          </ValidatedForm>
         </CardBody>
       </Card>
     </div>
