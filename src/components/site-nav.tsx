@@ -1,25 +1,20 @@
 import Link from "next/link";
-import { getViewerContext } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { logout, setPreviewMode } from "@/lib/actions/auth";
 import { ButtonLink } from "@/components/ui/button";
 import { OmMark } from "@/components/brand/om-mark";
 import { NotificationBell } from "@/components/notification-bell";
+import { ProfileMenu } from "@/components/profile-menu";
 
 export async function SiteNav() {
-  const { user, previewAs } = await getViewerContext();
+  const user = await getCurrentUser();
 
-  const effectiveRole = previewAs ?? user?.role ?? "guest";
-  const effectiveStatus = previewAs ? "active" : (user?.status ?? "guest");
+  const isMember = user?.status === "active" && ["member", "admin", "superadmin"].includes(user.role);
+  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
-  const isMember = effectiveStatus === "active" && ["member", "admin", "superadmin"].includes(effectiveRole);
-  const isAdmin = !previewAs && (effectiveRole === "admin" || effectiveRole === "superadmin");
-  const isSuper = !previewAs && effectiveRole === "superadmin";
-
-  const showBell = !!user && !previewAs;
-  const notifications = showBell
+  const notifications = user
     ? await prisma.notification.findMany({
-        where: { userId: user!.id },
+        where: { userId: user.id },
         orderBy: { createdAt: "desc" },
         take: 12,
         select: { id: true, message: true, type: true, read: true, createdAt: true },
@@ -38,7 +33,7 @@ export async function SiteNav() {
   ].filter((l) => l.show);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--background)]/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-[color:var(--hairline)] bg-[color:var(--background)]/80 backdrop-blur-md print:hidden">
       <nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
         {/* Brand */}
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
@@ -76,38 +71,8 @@ export async function SiteNav() {
 
           {user ? (
             <>
-              {isSuper && (
-                <div className="hidden items-center gap-1 text-xs lg:flex">
-                  <form action={setPreviewMode.bind(null, "member")}>
-                    <button className="rounded-full border border-[color:var(--hairline)] px-2.5 py-1 text-muted transition hover:border-brand-400 hover:text-brand-700">
-                      View as Member
-                    </button>
-                  </form>
-                  <form action={setPreviewMode.bind(null, "guest")}>
-                    <button className="rounded-full border border-[color:var(--hairline)] px-2.5 py-1 text-muted transition hover:border-brand-400 hover:text-brand-700">
-                      View as Guest
-                    </button>
-                  </form>
-                </div>
-              )}
-              {showBell && <NotificationBell notifications={notifications} unread={unread} />}
-              <Link
-                href="/dashboard"
-                className="text-sm font-medium text-foreground/80 transition hover:text-terracotta"
-              >
-                {user.firstName}
-              </Link>
-              {!previewAs && (
-                <Link
-                  href="/profile"
-                  className="hidden text-sm text-muted transition hover:text-terracotta sm:block"
-                >
-                  Profile
-                </Link>
-              )}
-              <form action={logout}>
-                <button className="text-sm text-muted transition hover:text-red-600">Sign out</button>
-              </form>
+              <NotificationBell notifications={notifications} unread={unread} />
+              <ProfileMenu firstName={user.firstName} />
             </>
           ) : (
             <ButtonLink href="/join" size="sm">

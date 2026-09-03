@@ -38,7 +38,7 @@ export default async function UpdatesPage() {
               <Field label="Details" name="body" required>
                 <Textarea name="body" required placeholder="Let's plan the 2026 Ganesh Puja together. Everyone is welcome." />
               </Field>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <Field label="Category" name="category">
                   <Select name="category" defaultValue="general">
                     <option value="general">General update</option>
@@ -48,8 +48,11 @@ export default async function UpdatesPage() {
                     <option value="event">Event</option>
                   </Select>
                 </Field>
-                <Field label="When (optional)" name="happensAt" optional>
+                <Field label="Starts at" name="happensAt" optional>
                   <Input name="happensAt" type="datetime-local" />
+                </Field>
+                <Field label="Ends at" name="endsAt" optional hint="Hides it from the homepage banner once past">
+                  <Input name="endsAt" type="datetime-local" />
                 </Field>
               </div>
               <label className="flex items-center gap-2 text-sm text-muted">

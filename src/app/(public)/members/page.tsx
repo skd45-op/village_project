@@ -1,20 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { getViewerContext, isMemberOrAbove } from "@/lib/auth";
+import { getCurrentUser, isMemberOrAbove } from "@/lib/auth";
 import { SectionHeading } from "@/components/ui/primitives";
 import { PeopleDirectory, type Person } from "./people-directory";
 
 export const dynamic = "force-dynamic";
 
 export default async function MembersPage() {
-  const { user, previewAs } = await getViewerContext();
+  const user = await getCurrentUser();
 
-  const full =
-    previewAs === "member" ? true :
-    previewAs === "guest"  ? false :
-    isMemberOrAbove(user);
+  const full = isMemberOrAbove(user);
 
-  // Only the super admin (viewing directly, not in preview) sees internal role labels.
-  const showRealRoles = !previewAs && user?.role === "superadmin";
+  // Only the super admin sees internal role labels.
+  const showRealRoles = user?.role === "superadmin";
 
   const members = await prisma.user.findMany({
     where: { status: "active", role: { in: ["member", "admin"] } },

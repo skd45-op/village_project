@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, canCreateInModule } from "@/lib/auth";
 import { createPoll } from "@/lib/actions/polls";
-import { PageHeader, Card, CardBody, Field, Input, Textarea, ValidatedForm } from "@/components/ui/primitives";
+import { PageHeader, Card, CardBody, Field, Input, ValidatedForm } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { PollOptionsField } from "./poll-options-field";
 
 export default async function NewPollPage() {
   const user = await getCurrentUser();
@@ -17,8 +18,8 @@ export default async function NewPollPage() {
             <Field label="Question" name="title" required>
               <Input name="title" required placeholder="Which date for the annual feast?" />
             </Field>
-            <Field label="Options" name="options" required hint="One per line, at least two">
-              <Textarea name="options" required placeholder={"Saturday\nSunday"} className="min-h-32" />
+            <Field label="Options" name="options" required hint="At least two">
+              <PollOptionsField />
             </Field>
             <Field label="Closes at" name="expiresAt" optional>
               <Input name="expiresAt" type="datetime-local" />

@@ -24,11 +24,16 @@ export async function createAnnouncement(form: FormData) {
   const categoryRaw = (form.get("category") as string)?.trim() || "general";
   const category = CATEGORIES.includes(categoryRaw) ? categoryRaw : "general";
   const happensAtRaw = (form.get("happensAt") as string)?.trim();
+  const endsAtRaw = (form.get("endsAt") as string)?.trim();
   const pinned = form.get("pinned") === "on";
 
   if (!title || !body) throw new Error("Title and details are required.");
 
   const happensAt = happensAtRaw ? new Date(happensAtRaw) : null;
+  const endsAt = endsAtRaw ? new Date(endsAtRaw) : null;
+  if (endsAt && happensAt && endsAt < happensAt) {
+    throw new Error("End date/time can't be before the start.");
+  }
 
   await prisma.announcement.create({
     data: {
@@ -36,6 +41,7 @@ export async function createAnnouncement(form: FormData) {
       body,
       category,
       happensAt: happensAt && !isNaN(happensAt.getTime()) ? happensAt : null,
+      endsAt: endsAt && !isNaN(endsAt.getTime()) ? endsAt : null,
       pinned,
       createdById: user.id,
     },

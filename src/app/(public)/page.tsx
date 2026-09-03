@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getViewerContext } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { ButtonLink } from "@/components/ui/button";
 import { Container, SectionHeading, StatTile } from "@/components/ui/primitives";
-import { HeroArt } from "@/components/brand/hero-art";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { Reveal } from "@/components/ui/reveal";
 import { PhotoMarquee } from "@/components/photo-marquee";
@@ -21,14 +20,12 @@ const CATEGORY_LABEL: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  const { user, previewAs } = await getViewerContext();
+  const user = await getCurrentUser();
 
-  const effectiveRole = previewAs ?? user?.role ?? "guest";
-  const effectiveStatus = previewAs ? "active" : (user?.status ?? "guest");
-  const isActiveMember = effectiveStatus === "active" && ["member", "admin", "superadmin"].includes(effectiveRole);
-  const isAdminOrSuper = !previewAs && (user?.role === "admin" || user?.role === "superadmin");
-  const isPending = !!user && user.status === "pending" && !previewAs;
-  const showJoinCta = previewAs === "guest" || (!previewAs && !user);
+  const isActiveMember = user?.status === "active" && ["member", "admin", "superadmin"].includes(user.role);
+  const isAdminOrSuper = user?.role === "admin" || user?.role === "superadmin";
+  const isPending = !!user && user.status === "pending";
+  const showJoinCta = !user;
 
   const [occasions, occasionCount, mediaCount, memberCount, ticker, updates] = await Promise.all([
     prisma.occasion.findMany({
@@ -47,8 +44,11 @@ export default async function HomePage() {
     }),
     prisma.occasion.count(),
     prisma.media.count(),
-    prisma.user.count({ where: { status: "active", role: { in: ["member", "admin", "superadmin"] } } }),
-    prisma.announcement.findFirst({ orderBy: [{ pinned: "desc" }, { createdAt: "desc" }] }),
+    prisma.user.count({ where: { status: "active", role: { in: ["member", "admin"] } } }),
+    prisma.announcement.findFirst({
+      where: { OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }] },
+      orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
+    }),
     prisma.announcement.findMany({ orderBy: [{ happensAt: "desc" }, { createdAt: "desc" }], take: 3 }),
   ]);
 
@@ -64,19 +64,33 @@ export default async function HomePage() {
   return (
     <div className="space-y-0">
       {/* ---------- HERO ---------- */}
-      <section className="full-bleed -mt-10 bg-brand-900 text-white">
-        <div className="ring-field">
-          <Container className="grid items-center gap-10 py-16 lg:grid-cols-2 lg:py-24">
-            <div>
+      <section className="full-bleed -mt-10 relative overflow-hidden bg-brand-950 text-white">
+        {/* Premium local artwork background (reliable — no external image) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/hero-bg.svg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Left-side wash keeps the headline legible; the artwork stays visible on the right */}
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-950/90 via-brand-950/50 to-transparent" />
+        {/* Floating glow orbs */}
+        <div className="orb orb-a right-[12%] top-[18%] h-72 w-72 bg-gold/30" />
+        <div className="orb orb-b left-[6%] bottom-[8%] h-64 w-64 bg-brand-500/40" />
+        <div className="orb orb-c right-[28%] bottom-[20%] h-40 w-40 bg-terracotta/30" />
+
+        <div className="relative">
+          <Container className="pb-16 pt-12 sm:pb-20 sm:pt-14 lg:pb-24 lg:pt-16">
+            <div className="max-w-2xl">
               <p className="eyebrow mb-5 flex items-center gap-2 text-gold">
                 <span aria-hidden>✦</span> Welcome home
               </p>
-              <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">
+              <h1 className="font-display text-5xl font-semibold leading-[1.02] tracking-tight drop-shadow-sm sm:text-7xl">
                 Our place.
                 <span className="block text-gold">Our people.</span>
                 Our memories.
               </h1>
-              <p className="mt-6 max-w-md text-lg text-white/70">
+              <p className="mt-6 max-w-md text-lg text-white/80">
                 Stay close to everything happening in Kundapur — from the next aarti to the
                 stories we&apos;ve kept for years.
               </p>
@@ -88,16 +102,13 @@ export default async function HomePage() {
                 <ButtonLink href="/occasions" variant="secondary" size="lg">Explore occasions</ButtonLink>
               </div>
             </div>
-            <div className="relative">
-              <HeroArt className="float-slow" />
-            </div>
           </Container>
-        </div>
-        <div className="border-t border-white/10">
-          <Container className="flex items-center gap-4 py-4 text-xs text-white/50">
-            <span className="h-px w-10 bg-white/30" />
-            <span className="eyebrow">Scroll to explore</span>
-          </Container>
+          <div className="border-t border-white/10">
+            <Container className="flex items-center gap-4 py-4 text-xs text-white/60">
+              <span className="h-px w-10 bg-white/30" />
+              <span className="eyebrow">Scroll to explore</span>
+            </Container>
+          </div>
         </div>
       </section>
 
@@ -110,8 +121,8 @@ export default async function HomePage() {
             </span>
             <span className="font-semibold">{ticker.title}</span>
             <span className="flex-1 truncate text-sm text-muted">{ticker.body}</span>
-            <Link href="/updates" className="shrink-0 text-sm font-semibold text-terracotta hover:underline">
-              Happening now →
+            <Link href={`/updates/${ticker.id}`} className="shrink-0 text-sm font-semibold text-terracotta hover:underline">
+              View update →
             </Link>
           </Container>
         </section>
@@ -216,7 +227,7 @@ export default async function HomePage() {
               <p className="text-sm text-muted">No updates yet.</p>
             ) : (
               updates.map((a) => (
-                <Link key={a.id} href="/updates" className="group flex gap-4 py-5">
+                <Link key={a.id} href={`/updates/${a.id}`} className="group flex gap-4 py-5">
                   <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
                     <BellIcon />
                   </div>

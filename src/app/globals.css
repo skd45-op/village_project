@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* Zero out the browser's own print margin — that margin is where Chrome/Edge
+   draw their built-in header/footer (page title/URL + page number). With no
+   margin there's no room for them, so they're omitted. Printed pages provide
+   their own padding instead (see e.g. the budget statement page). */
+@media print {
+  @page {
+    margin: 0;
+  }
+}
+
+/* Chrome/Edge autofill forces a light yellow/blue input background + dark text,
+   which washes out icons and labels on dark-themed forms (e.g. the Super Admin
+   portal login). Scope this override to `.dark-autofill` so light-theme forms
+   keep the browser's normal autofill look. */
+.dark-autofill input:-webkit-autofill,
+.dark-autofill input:-webkit-autofill:hover,
+.dark-autofill input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.06) inset;
+  transition: background-color 9999s ease-in-out 0s;
+  caret-color: #fff;
+}
+
 /* ============================================================================
    Kundapur design system — Tailwind v4 CSS-first theme.
    Warm "cream" light theme (primary) + a refined charcoal/teal dark theme.
@@ -171,8 +194,28 @@ body {
   to { transform: translateX(-50%); }
 }
 
+/* Floating glow orbs for hero / auth panels — soft, slow, "3D" ambient motion. */
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+}
+.orb-a { animation: orb-float 14s ease-in-out infinite; }
+.orb-b { animation: orb-float 18s ease-in-out infinite reverse; }
+.orb-c { animation: glow-pulse 9s ease-in-out infinite; }
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(24px, -30px) scale(1.12); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.15); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .float-slow, .anim-sun, .anim-twinkle, .anim-drift-slow, .anim-drift-fast, .animate-marquee { animation: none !important; }
+  .float-slow, .anim-sun, .anim-twinkle, .anim-drift-slow, .anim-drift-fast, .animate-marquee,
+  .orb-a, .orb-b, .orb-c { animation: none !important; }
   .reveal { opacity: 1; transform: none; }
   .tilt-inner { transition: none; }
 }

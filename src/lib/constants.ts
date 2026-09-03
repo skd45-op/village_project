@@ -7,6 +7,12 @@ export const MEDIA_BUCKET = "occasion-media";
 // anonymous users too, because the join/signup form runs before authentication.
 export const AVATAR_BUCKET = "avatars";
 
+// Supabase Storage bucket for budget entry receipts/proof (images or PDFs).
+export const RECEIPT_BUCKET = "receipts";
+
+// Sentinel value for "let me type my own category" in budget category selects.
+export const CUSTOM_CATEGORY_VALUE = "__custom__";
+
 // Modules an Admin can be granted (doc §2.2).
 export const MODULES: { value: Module; label: string; description: string }[] = [
   { value: "media", label: "Media", description: "Add photos / YouTube links / mark a session live" },

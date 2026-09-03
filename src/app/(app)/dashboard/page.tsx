@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
-import { setPreviewMode } from "@/lib/actions/auth";
 import { MODULES } from "@/lib/constants";
 import { Card, CardBody, PageHeader, Alert, Badge, EmptyState } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ export default async function DashboardPage() {
   const [pendingRequests, totalMembers, totalOccasions, totalMedia] = isSuper
     ? await Promise.all([
         prisma.membershipRequest.count({ where: { status: "pending" } }),
-        prisma.user.count({ where: { status: "active", role: { in: ["member", "admin", "superadmin"] } } }),
+        prisma.user.count({ where: { status: "active", role: { in: ["member", "admin"] } } }),
         prisma.occasion.count(),
         prisma.media.count(),
       ])
@@ -78,32 +77,6 @@ export default async function DashboardPage() {
                 <AdminTile href="/admin/corrections" label="Budget corrections" />
                 <AdminTile href="/admin/contact" label="Contact messages" />
                 <AdminTile href="/occasions/new" label="Create new occasion" />
-              </div>
-            </CardBody>
-          </Card>
-
-          {/* Preview mode */}
-          <Card>
-            <CardBody className="space-y-3">
-              <h2 className="font-semibold text-neutral-600 dark:text-neutral-400">Preview site as…</h2>
-              <p className="text-sm text-neutral-500">See exactly what members or guests see without signing out.</p>
-              <div className="flex gap-3 flex-wrap">
-                <form action={setPreviewMode.bind(null, "member")}>
-                  <button
-                    type="submit"
-                    className="rounded-full border border-brand-400 px-4 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50 transition dark:text-brand-300 dark:hover:bg-brand-950"
-                  >
-                    View as Member
-                  </button>
-                </form>
-                <form action={setPreviewMode.bind(null, "guest")}>
-                  <button
-                    type="submit"
-                    className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 transition dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                  >
-                    View as Guest
-                  </button>
-                </form>
               </div>
             </CardBody>
           </Card>

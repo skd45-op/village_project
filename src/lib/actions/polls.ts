@@ -11,15 +11,14 @@ export async function createPoll(form: FormData) {
   if (!canCreateInModule(user, "polls")) throw new Error("Not authorized for the polls module.");
 
   const title = (form.get("title") as string)?.trim();
-  const optionsRaw = (form.get("options") as string) ?? "";
   const expiresRaw = (form.get("expiresAt") as string) || "";
-  const options = optionsRaw
-    .split("\n")
-    .map((o) => o.trim())
+  const options = form
+    .getAll("options")
+    .map((o) => String(o).trim())
     .filter(Boolean);
 
   if (!title) throw new Error("A poll title is required.");
-  if (options.length < 2) throw new Error("Add at least two options (one per line).");
+  if (options.length < 2) throw new Error("Add at least two options.");
 
   await prisma.poll.create({
     data: {

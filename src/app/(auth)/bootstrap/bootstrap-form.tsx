@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { bootstrapSuperAdmin } from "@/lib/actions/bootstrap";
 import type { ActionState } from "@/lib/actions/auth";
-import { Field, Input, Alert, ValidatedForm } from "@/components/ui/primitives";
+import { Field, Input, PasswordInput, Alert, ValidatedForm } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
 
 export function BootstrapForm() {
@@ -13,7 +13,7 @@ export function BootstrapForm() {
     <ValidatedForm action={action} className="space-y-4">
       {state.error && <Alert tone="error">{state.error}</Alert>}
       <Field label="Bootstrap secret" name="secret" required>
-        <Input name="secret" type="password" required />
+        <PasswordInput name="secret" required />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="First name" name="firstName" required>
@@ -27,7 +27,7 @@ export function BootstrapForm() {
         <Input name="email" type="email" required />
       </Field>
       <Field label="Password" name="password" required hint="At least 8 characters">
-        <Input name="password" type="password" required minLength={8} />
+        <PasswordInput name="password" required minLength={8} />
       </Field>
       <SubmitButton className="w-full" pendingText="Creating…">
         Create Super Admin

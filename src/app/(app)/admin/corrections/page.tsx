@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { addCorrection } from "@/lib/actions/budget";
-import { PageHeader, Card, CardBody, Badge, Field, Input, EmptyState, ValidatedForm } from "@/components/ui/primitives";
+import { PageHeader, Card, CardBody, Badge, Field, Input, EmptyState, ValidatedForm, MoneyInput } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { formatMoney, formatDate } from "@/lib/utils";
 
@@ -59,7 +59,7 @@ export default async function CorrectionsPage() {
                   <ValidatedForm action={addCorrection} className="flex flex-wrap items-end gap-2 border-t border-black/5 pt-2 dark:border-white/5">
                     <input type="hidden" name="originalEntryId" value={e.id} />
                     <Field label="Correction (₹, ± )" name="amountDelta">
-                      <Input name="amountDelta" type="number" step="0.01" placeholder="-500" className="w-32" required />
+                      <MoneyInput name="amountDelta" allowNegative placeholder="-500" className="w-32" required />
                     </Field>
                     <Field label="Reason" name="reason">
                       <Input name="reason" placeholder="duplicate entry" className="w-64" required />

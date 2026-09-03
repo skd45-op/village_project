@@ -7,6 +7,7 @@ import pg from "pg";
 
 const BUCKET = "occasion-media";
 const AVATAR_BUCKET = "avatars";
+const RECEIPT_BUCKET = "receipts";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -42,6 +43,7 @@ async function ensureBucket(name) {
 
 await ensureBucket(BUCKET);
 await ensureBucket(AVATAR_BUCKET);
+await ensureBucket(RECEIPT_BUCKET);
 
 // 2) Create RLS policies on storage.objects. Parse DIRECT_URL manually because
 //    the password can contain "@", which breaks naive URL parsing.
@@ -66,6 +68,16 @@ const sql = `
   create policy "avatars public upload"
     on storage.objects for insert to anon, authenticated
     with check (bucket_id = '${AVATAR_BUCKET}');
+
+  drop policy if exists "receipts authenticated upload" on storage.objects;
+  create policy "receipts authenticated upload"
+    on storage.objects for insert to authenticated
+    with check (bucket_id = '${RECEIPT_BUCKET}');
+
+  drop policy if exists "receipts authenticated delete" on storage.objects;
+  create policy "receipts authenticated delete"
+    on storage.objects for delete to authenticated
+    using (bucket_id = '${RECEIPT_BUCKET}');
 `;
 
 let applied = false;

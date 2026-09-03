@@ -119,6 +119,7 @@ model User {
   pollVotes        PollVote[]
   notifications    Notification[]
   announcements    Announcement[]      @relation("AnnouncementCreatedBy")
+  stockEntriesAdded StockEntry[]       @relation("StockEntryAddedBy")
   grantsGiven      AdminPermission[]   @relation("GrantedBy")
 
   @@index([role])
@@ -166,7 +167,29 @@ model Occasion {
   iconUrl     String?
   createdAt   DateTime @default(now())
 
-  sessions Session[]
+  sessions     Session[]
+  stockEntries StockEntry[]
+}
+
+// Treasury carry-forward "stock" for an occasion (e.g. Ganesh Puja's leftover
+// funds across years). Distinct from BudgetEntry: not per-session, not
+// auto-computed, and fully mutable — Super Admin manually records each year's
+// surplus/deficit and can edit or delete it later.
+model StockEntry {
+  id          String   @id @default(uuid())
+  occasionId  String
+  year        Int
+  amountDelta Decimal  @db.Decimal(12, 2) // + = surplus added to stock, - = drawn from stock
+  description String?
+  addedById   String?
+  addedAt     DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  occasion Occasion @relation(fields: [occasionId], references: [id], onDelete: Cascade)
+  addedBy  User?    @relation("StockEntryAddedBy", fields: [addedById], references: [id])
+
+  @@unique([occasionId, year])
+  @@index([occasionId])
 }
 
 model Session {
@@ -319,7 +342,8 @@ model Announcement {
   title     String
   body      String
   category  String    @default("general") // general | meeting | aarti | bhajan | event
-  happensAt DateTime? // optional date/time the thing happens
+  happensAt DateTime? // optional start date/time the thing happens
+  endsAt    DateTime? // optional end date/time — when set, the update is treated as over after this
   pinned    Boolean   @default(false) // surfaced in the homepage "happening soon" ticker
   createdById String?
   createdAt DateTime  @default(now())

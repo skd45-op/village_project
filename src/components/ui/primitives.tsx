@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { fieldStyles } from "./field-styles";
 import type { ReactNode, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, LabelHTMLAttributes } from "react";
 
 // Standard page-width wrapper. Content pages wrap themselves in this; the shell
@@ -122,11 +123,18 @@ export function Label({ className, children, ...props }: LabelHTMLAttributes<HTM
   );
 }
 
-const fieldStyles =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 disabled:opacity-60 dark:border-white/15 dark:bg-neutral-950";
-
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cn(fieldStyles, className)} {...props} />;
+}
+
+// Input with a leading icon (used on the compact auth forms).
+export function IconInput({ icon, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { icon: ReactNode }) {
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">{icon}</span>
+      <input className={cn(fieldStyles, "pl-9", className)} {...props} />
+    </div>
+  );
 }
 
 export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -145,3 +153,9 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
 // React context for inline validation). Re-exported here so existing imports from
 // "@/components/ui/primitives" keep working.
 export { Field, ValidatedForm, useFieldError } from "./field";
+
+// MoneyInput lives in ./money-input (client-only — it intercepts keystrokes).
+export { MoneyInput } from "./money-input";
+
+// PasswordInput lives in ./password-input (client-only — show/hide toggle state).
+export { PasswordInput } from "./password-input";

@@ -2,10 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
 import { notifyMemberReviewers } from "@/lib/notify";
 
 export type ActionState = { error?: string; success?: string };
@@ -17,31 +15,27 @@ function str(form: FormData, key: string) {
 export async function register(_prev: ActionState, form: FormData): Promise<ActionState> {
   const email = str(form, "email").toLowerCase();
   const password = str(form, "password");
-  const firstName = str(form, "firstName");
-  const lastName = str(form, "lastName");
+  const name = str(form, "name");
   const mobile = str(form, "mobile");
-  const address = str(form, "address");
-  const relation = str(form, "relation");
-  const ageRaw = str(form, "age");
   const photoUrl = str(form, "photoUrl");
 
-  if (!email || !password || !firstName || !lastName || !mobile) {
+  if (!name || !email || !password || !mobile) {
     return { error: "Please fill in name, email, password and mobile number." };
-  }
-  if (!photoUrl) {
-    return { error: "Please upload a profile photo." };
   }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
   }
+
+  // Split a single "Full name" into first/last for our schema.
+  const parts = name.split(/\s+/);
+  const firstName = parts[0];
+  const lastName = parts.slice(1).join(" ");
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return { error: error.message };
   const authId = data.user?.id;
   if (!authId) return { error: "Could not create account. Try again." };
-
-  const age = ageRaw ? Number(ageRaw) : null;
 
   // Create the pending profile + a membership request the reviewers can act on.
   const user = await prisma.user.create({
@@ -51,8 +45,6 @@ export async function register(_prev: ActionState, form: FormData): Promise<Acti
       firstName,
       lastName,
       mobile,
-      address: address || null,
-      age: Number.isFinite(age) ? age : null,
       photoUrl: photoUrl || null,
       role: "member",
       status: "pending",
@@ -63,13 +55,11 @@ export async function register(_prev: ActionState, form: FormData): Promise<Acti
     data: {
       userId: user.id,
       status: "pending",
-      userSnapshot: { firstName, lastName, email, mobile, address, relation, age, photoUrl },
+      userSnapshot: { firstName, lastName, email, mobile, photoUrl },
     },
   });
 
-  await notifyMemberReviewers(
-    `New membership request from ${firstName} ${lastName}.`,
-  );
+  await notifyMemberReviewers(`New membership request from ${name}.`);
 
   redirect("/dashboard");
 }
@@ -123,18 +113,4 @@ export async function loginSuperAdmin(
 
   revalidatePath("/", "layout");
   redirect("/admin");
-}
-
-export async function setPreviewMode(role: "guest" | "member") {
-  const user = await getCurrentUser();
-  if (user?.role !== "superadmin") return;
-  const cookieStore = await cookies();
-  cookieStore.set("vp_preview", role, { path: "/", httpOnly: true, sameSite: "lax" });
-  redirect("/");
-}
-
-export async function clearPreviewMode() {
-  const cookieStore = await cookies();
-  cookieStore.delete("vp_preview");
-  revalidatePath("/", "layout");
 }

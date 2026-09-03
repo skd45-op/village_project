@@ -34,6 +34,20 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
+  // Super Admin login lives at /admin/login (public). Serve the dark portal page
+  // there via a rewrite so it isn't caught by the /admin/* auth redirect below,
+  // and canonicalize the old /admin-portal URL to /admin/login.
+  if (path === "/admin/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin-portal";
+    return NextResponse.rewrite(url);
+  }
+  if (path === "/admin-portal") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/login";
+    return NextResponse.redirect(url);
+  }
+
   // Routes that require a logged-in account.
   // Note: "/admin" is matched exactly + sub-routes to avoid catching "/admin-portal".
   const protectedPrefixes = ["/dashboard", "/budget", "/polls", "/profile"];

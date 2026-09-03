@@ -12,14 +12,13 @@ export async function addBudgetEntry(form: FormData) {
   const sessionId = form.get("sessionId") as string;
   const type = form.get("type") as BudgetType;
   const category = (form.get("category") as string)?.trim();
-  const amount = Number(form.get("amount"));
+  const amount = Math.round(Number(form.get("amount")));
   const description = ((form.get("description") as string) ?? "").trim() || null;
   const receiptUrl = ((form.get("receiptUrl") as string) ?? "").trim() || null;
 
   if (!sessionId || !category || !Number.isFinite(amount) || amount <= 0) {
     throw new Error("Session, category and a positive amount are required.");
   }
-  if (!receiptUrl) throw new Error("A proof/receipt is required for every entry.");
 
   await prisma.budgetEntry.create({
     data: { sessionId, type, category, amount, description, receiptUrl, addedById: user!.id },

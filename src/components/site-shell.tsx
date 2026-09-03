@@ -1,14 +1,10 @@
 import type { ReactNode } from "react";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
-import { PreviewBanner } from "@/components/preview-banner";
-import { getViewerContext } from "@/lib/auth";
 
 export async function SiteShell({ children }: { children: ReactNode }) {
-  const { previewAs } = await getViewerContext();
   return (
     <div className="flex min-h-dvh flex-col overflow-x-hidden">
-      {previewAs && <PreviewBanner previewAs={previewAs} />}
       <SiteNav />
       {/* Padded by default so content pages read comfortably; full-bleed sections
           (the homepage hero/bands) opt out with the `.full-bleed` utility. */}

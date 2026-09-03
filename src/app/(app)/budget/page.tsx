@@ -3,12 +3,15 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, isMemberOrAbove, canCreateInModule } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSessionBudget } from "@/lib/budget";
+import { getOccasionStock, getStockBalances } from "@/lib/stock";
 import { addBudgetEntry, addDonation } from "@/lib/actions/budget";
-import { PageHeader, Card, CardBody, Badge, Field, Input, Select, Textarea, EmptyState, Alert, ValidatedForm } from "@/components/ui/primitives";
+import { PageHeader, Card, CardBody, Badge, Field, Input, Select, Textarea, EmptyState, Alert, ValidatedForm, MoneyInput } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { BUDGET_CATEGORIES } from "@/lib/constants";
+import { ReceiptUploader } from "@/components/receipt-uploader";
 import { formatMoney, formatDate } from "@/lib/utils";
+import { BudgetOccasionCard } from "./occasion-picker";
+import { CategoryField } from "./category-field";
 
 export default async function BudgetPage({
   searchParams,
@@ -25,22 +28,39 @@ export default async function BudgetPage({
       orderBy: [{ year: "desc" }],
       include: { occasion: true },
     });
+
+    // Group sessions by occasion so users pick the occasion, then a year.
+    const byOccasion = new Map<
+      string,
+      { name: string; iconUrl: string | null; years: { sessionId: string; year: number; title: string }[] }
+    >();
+    for (const s of sessions) {
+      const entry = byOccasion.get(s.occasionId) ?? {
+        name: s.occasion.name,
+        iconUrl: s.occasion.iconUrl,
+        years: [],
+      };
+      entry.years.push({ sessionId: s.id, year: s.year, title: s.title });
+      byOccasion.set(s.occasionId, entry);
+    }
+    const occasions = Array.from(byOccasion.entries()).map(([occasionId, v]) => ({ occasionId, ...v }));
+    const stockBalances = await getStockBalances(occasions.map((o) => o.occasionId));
+
     return (
       <div>
-        <PageHeader title="Budget / Treasury" subtitle="Choose a session to view its ledger" />
-        {sessions.length === 0 ? (
+        <PageHeader title="Budget / Treasury" subtitle="Choose an occasion, then a year, to view its ledger" />
+        {occasions.length === 0 ? (
           <EmptyState title="No sessions yet" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {sessions.map((s) => (
-              <Link key={s.id} href={`/budget?session=${s.id}`}>
-                <Card className="transition hover:border-brand-400 hover:shadow">
-                  <CardBody>
-                    <p className="font-medium">{s.title}</p>
-                    <p className="text-sm text-neutral-500">{s.occasion.name} · {s.year}</p>
-                  </CardBody>
-                </Card>
-              </Link>
+            {occasions.map((o) => (
+              <BudgetOccasionCard
+                key={o.occasionId}
+                name={o.name}
+                iconUrl={o.iconUrl}
+                years={o.years}
+                stock={stockBalances.get(o.occasionId) ?? 0}
+              />
             ))}
           </div>
         )}
@@ -51,9 +71,11 @@ export default async function BudgetPage({
   const { session, rows, income, expense, balance } = await getSessionBudget(sessionId);
   if (!session) redirect("/budget");
 
+  const { balance: stockBalance } = await getOccasionStock(session.occasionId);
+
   const members = canAdd
     ? await prisma.user.findMany({
-        where: { status: "active", role: { in: ["member", "admin", "superadmin"] } },
+        where: { status: "active", role: { in: ["member", "admin"] } },
         orderBy: { firstName: "asc" },
         select: { id: true, firstName: true, lastName: true },
       })
@@ -70,14 +92,22 @@ export default async function BudgetPage({
       <PageHeader
         title={`Budget — ${session.title}`}
         subtitle={`${session.occasion.name} · ${session.year}`}
-        action={<ButtonLink href={`/budget/${session.id}/statement`} variant="secondary" size="sm">Statement (PDF)</ButtonLink>}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href={`/budget/${session.id}/ledger`} variant="secondary" size="sm">Full ledger</ButtonLink>
+            <ButtonLink href={`/budget/${session.id}/statement`} variant="secondary" size="sm">Statement (PDF)</ButtonLink>
+          </div>
+        }
       />
       <Link href="/budget" className="text-sm text-brand-600 hover:underline">← All sessions</Link>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <SummaryCard label="Total Income" value={formatMoney(income)} tone="green" />
         <SummaryCard label="Total Expense" value={formatMoney(expense)} tone="red" />
         <SummaryCard label="Balance" value={formatMoney(balance)} tone={balance >= 0 ? "green" : "red"} />
+        <Link href={`/budget/stock/${session.occasionId}`} className="block">
+          <SummaryCard label="Stock in hand →" value={formatMoney(stockBalance)} tone={stockBalance >= 0 ? "green" : "red"} />
+        </Link>
       </div>
 
       {canAdd && (
@@ -92,19 +122,15 @@ export default async function BudgetPage({
                   <option value="expense">Expense</option>
                 </Select>
               </Field>
-              <Field label="Category" name="category">
-                <Select name="category" defaultValue={BUDGET_CATEGORIES[0]}>
-                  {BUDGET_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </Select>
-              </Field>
+              <CategoryField />
               <Field label="Amount (₹)" name="amount" required>
-                <Input name="amount" type="number" step="0.01" min="0" required />
+                <MoneyInput name="amount" required />
               </Field>
-              <Field label="Receipt/proof URL" name="receiptUrl" required>
-                <Input name="receiptUrl" type="url" required placeholder="https://…" />
-              </Field>
+              <div className="sm:col-span-2">
+                <Field label="Receipt / proof" name="receiptUrl" optional>
+                  <ReceiptUploader name="receiptUrl" />
+                </Field>
+              </div>
               <div className="sm:col-span-2">
                 <Field label="Description" name="description" optional>
                   <Textarea name="description" />
@@ -133,8 +159,13 @@ export default async function BudgetPage({
                       <span className="font-medium">{entry.category}</span>
                       {entry.description && <span className="text-neutral-500"> · {entry.description}</span>}
                       <p className="mt-0.5 text-xs text-neutral-400">
-                        {formatDate(entry.addedAt)} · by {entry.addedBy?.firstName ?? "—"} ·{" "}
-                        <a href={entry.receiptUrl ?? "#"} className="text-brand-600 hover:underline" target="_blank" rel="noreferrer">receipt</a>
+                        {formatDate(entry.addedAt)}
+                        {entry.receiptUrl && (
+                          <>
+                            {" · "}
+                            <a href={entry.receiptUrl} className="text-brand-600 hover:underline" target="_blank" rel="noreferrer">receipt</a>
+                          </>
+                        )}
                       </p>
                     </div>
                     <div className="text-right">
@@ -175,7 +206,7 @@ export default async function BudgetPage({
                   <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
                 ))}
               </Select>
-              <Input name="amount" type="number" step="0.01" min="0" placeholder="Amount" required />
+              <MoneyInput name="amount" placeholder="Amount" required />
               <Select name="mode" defaultValue="cash">
                 <option value="cash">Cash</option>
                 <option value="upi">UPI</option>
@@ -188,14 +219,19 @@ export default async function BudgetPage({
           {donations.length === 0 ? (
             <p className="text-sm text-neutral-500">No donations recorded.</p>
           ) : (
-            <ul className="divide-y divide-black/5 text-sm dark:divide-white/5">
+            <div className="space-y-2">
               {donations.map((d) => (
-                <li key={d.id} className="flex items-center justify-between py-2">
-                  <span>{d.member.firstName} {d.member.lastName} <span className="text-neutral-400">· {d.mode} · {formatDate(d.date)}</span></span>
+                <div key={d.id} className="flex items-center justify-between gap-3 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+                  <div>
+                    <span className="font-medium">{d.member.firstName} {d.member.lastName}</span>
+                    <p className="mt-0.5 text-xs text-neutral-400">
+                      {d.mode} · {formatDate(d.date)}
+                    </p>
+                  </div>
                   <span className="font-medium">{formatMoney(d.amount)}</span>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </CardBody>
       </Card>

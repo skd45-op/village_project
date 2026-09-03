@@ -16,7 +16,7 @@ const INVOLVED = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-[color:var(--hairline)] bg-sand/60">
+    <footer className="mt-16 border-t border-[color:var(--hairline)] bg-sand/60 print:hidden">
       <Container className="py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>

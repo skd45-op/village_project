@@ -16,6 +16,7 @@ export type Update = {
   body: string;
   category: string;
   happensAt: Date | string | null;
+  endsAt: Date | string | null;
   pinned: boolean;
   createdAt: Date | string;
 };
@@ -40,29 +41,36 @@ export function UpdatesFeed({ updates, isAdmin }: { updates: Update[]; isAdmin: 
         <EmptyState title="No matching updates" hint="Try a different search." />
       ) : (
         <div className="divide-y divide-[color:var(--hairline)]">
-          {filtered.map((a) => (
-            <article key={a.id} className="flex gap-4 py-5">
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
-                <BellIcon />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-xs text-muted">
-                  <span className="eyebrow text-terracotta">{CATEGORY_LABEL[a.category] ?? "Update"}</span>
-                  <span>·</span>
-                  <span>{formatDate(a.happensAt ?? a.createdAt)}</span>
-                  {a.pinned && <Badge tone="gold">Pinned</Badge>}
+          {filtered.map((a) => {
+            const ended = !!a.endsAt && new Date(a.endsAt) < new Date();
+            return (
+              <article key={a.id} className="flex gap-4 py-5">
+                <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta/10 text-terracotta">
+                  <BellIcon />
                 </div>
-                <h3 className="mt-1 font-display text-lg font-semibold">{a.title}</h3>
-                <p className="mt-1 text-sm text-muted">{a.body}</p>
-              </div>
-              {isAdmin && (
-                <form action={deleteAnnouncement} className="shrink-0">
-                  <input type="hidden" name="id" value={a.id} />
-                  <button className="text-xs text-muted transition hover:text-red-600">Delete</button>
-                </form>
-              )}
-            </article>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 text-xs text-muted">
+                    <span className="eyebrow text-terracotta">{CATEGORY_LABEL[a.category] ?? "Update"}</span>
+                    <span>·</span>
+                    <span>
+                      {formatDate(a.happensAt ?? a.createdAt)}
+                      {a.endsAt && <> – {formatDate(a.endsAt)}</>}
+                    </span>
+                    {a.pinned && !ended && <Badge tone="gold">Pinned</Badge>}
+                    {ended && <Badge tone="neutral">Ended</Badge>}
+                  </div>
+                  <h3 className="mt-1 font-display text-lg font-semibold">{a.title}</h3>
+                  <p className="mt-1 text-sm text-muted">{a.body}</p>
+                </div>
+                {isAdmin && (
+                  <form action={deleteAnnouncement} className="shrink-0">
+                    <input type="hidden" name="id" value={a.id} />
+                    <button className="text-xs text-muted transition hover:text-red-600">Delete</button>
+                  </form>
+                )}
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

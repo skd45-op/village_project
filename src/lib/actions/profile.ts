@@ -21,7 +21,6 @@ export async function updateProfile(_prev: ActionState, form: FormData): Promise
   const photoUrl = str(form, "photoUrl");
 
   if (!mobile) return { error: "Mobile number is required." };
-  if (!photoUrl) return { error: "A profile photo is required." };
 
   const age = ageRaw ? Number(ageRaw) : null;
 

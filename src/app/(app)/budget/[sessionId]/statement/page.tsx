@@ -22,7 +22,7 @@ export default async function StatementPage({
         <PrintButton />
       </div>
 
-      <div className="rounded-xl border border-black/10 bg-white p-8 text-neutral-900 print:border-0 print:p-0">
+      <div className="rounded-xl border border-black/10 bg-white p-8 text-neutral-900 print:border-0 print:p-10">
         <div className="mb-6 text-center">
           <h1 className="text-xl font-bold">🪔 Village Community</h1>
           <p className="text-sm text-neutral-500">Yearly Financial Statement</p>

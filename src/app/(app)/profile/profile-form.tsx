@@ -28,7 +28,7 @@ export function ProfileForm({
       <div>
         <p className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-200">
           Profile photo
-          <span className="ml-0.5 text-red-500">*</span>
+          <span className="ml-1 text-xs font-normal text-neutral-400">(optional)</span>
         </p>
         <AvatarUploader name="photoUrl" defaultUrl={photoUrl} />
       </div>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="base" cx="72%" cy="38%" r="85%">
+      <stop offset="0%" stop-color="#155844"/>
+      <stop offset="45%" stop-color="#0d3226"/>
+      <stop offset="100%" stop-color="#071c17"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="72%" cy="36%" r="30%">
+      <stop offset="0%" stop-color="#e0a83e" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#c65a3a" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#c65a3a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="petal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e0a83e" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#c65a3a" stop-opacity="0.7"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+
+  <!-- Base wash -->
+  <rect width="1600" height="900" fill="url(#base)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+
+  <!-- Concentric mandala rings around the warm centre -->
+  <g fill="none" stroke="#e7d3a0" stroke-opacity="0.10" transform="translate(1150 330)">
+    <circle r="120"/><circle r="180"/><circle r="250"/><circle r="330"/>
+    <circle r="420"/><circle r="520"/><circle r="640"/>
+  </g>
+
+  <!-- Rangoli petal ring -->
+  <g transform="translate(1150 330)" opacity="0.55">
+    <g id="ring1">
+      <g>
+        <path d="M0 -150 q 34 60 0 120 q -34 -60 0 -120 Z" fill="url(#petal)" opacity="0.9"/>
+      </g>
+    </g>
+    <use href="#ring1" transform="rotate(30)"/>
+    <use href="#ring1" transform="rotate(60)"/>
+    <use href="#ring1" transform="rotate(90)"/>
+    <use href="#ring1" transform="rotate(120)"/>
+    <use href="#ring1" transform="rotate(150)"/>
+    <use href="#ring1" transform="rotate(180)"/>
+    <use href="#ring1" transform="rotate(210)"/>
+    <use href="#ring1" transform="rotate(240)"/>
+    <use href="#ring1" transform="rotate(270)"/>
+    <use href="#ring1" transform="rotate(300)"/>
+    <use href="#ring1" transform="rotate(330)"/>
+  </g>
+
+  <!-- Inner dot ring -->
+  <g transform="translate(1150 330)" fill="#ffe9a8" fill-opacity="0.7">
+    <g id="dot"><circle cx="0" cy="-95" r="4"/></g>
+    <use href="#dot" transform="rotate(45)"/>
+    <use href="#dot" transform="rotate(90)"/>
+    <use href="#dot" transform="rotate(135)"/>
+    <use href="#dot" transform="rotate(180)"/>
+    <use href="#dot" transform="rotate(225)"/>
+    <use href="#dot" transform="rotate(270)"/>
+    <use href="#dot" transform="rotate(315)"/>
+  </g>
+
+  <!-- Warm sun core -->
+  <circle cx="1150" cy="330" r="70" fill="#ffd15c" filter="url(#soft)" opacity="0.85"/>
+  <circle cx="1150" cy="330" r="46" fill="#fff2c4" opacity="0.9"/>
+
+  <!-- Faint Om watermark -->
+  <text x="360" y="700" font-family="Georgia, serif" font-size="640" fill="#ffffff" fill-opacity="0.04" text-anchor="middle" dominant-baseline="middle">ॐ</text>
+
+  <!-- Soft foreground hill silhouettes -->
+  <path d="M0 760 Q 300 680 620 760 T 1200 760 T 1600 720 L1600 900 L0 900 Z" fill="#0a241d" opacity="0.85"/>
+  <path d="M0 840 Q 360 780 760 840 T 1600 820 L1600 900 L0 900 Z" fill="#061711"/>
+</svg>
