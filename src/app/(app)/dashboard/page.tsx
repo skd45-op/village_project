@@ -14,25 +14,25 @@ export default async function DashboardPage() {
   const isMember = user.status === "active" && user.role === "member";
   const isPending = user.status === "pending";
 
-  const notifications = await prisma.notification.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 15,
-  });
+  // Notifications and stats are independent of each other — fetch concurrently.
+  const [notifications, [pendingRequests, totalMembers, totalOccasions, totalMedia]] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+    }),
+    isSuper
+      ? Promise.all([
+          prisma.membershipRequest.count({ where: { status: "pending" } }),
+          prisma.user.count({ where: { status: "active", role: { in: ["member", "admin"] } } }),
+          prisma.occasion.count(),
+          prisma.media.count(),
+        ])
+      : isAdmin
+        ? Promise.all([prisma.membershipRequest.count({ where: { status: "pending" } }), Promise.resolve(0), Promise.resolve(0), Promise.resolve(0)])
+        : Promise.resolve([0, 0, 0, 0] as const),
+  ]);
   const hasUnread = notifications.some((n) => !n.read);
-
-  // Stats / counts only fetched when needed
-  const [pendingRequests, totalMembers, totalOccasions, totalMedia] = isSuper
-    ? await Promise.all([
-        prisma.membershipRequest.count({ where: { status: "pending" } }),
-        prisma.user.count({ where: { status: "active", role: { in: ["member", "admin"] } } }),
-        prisma.occasion.count(),
-        prisma.media.count(),
-      ])
-    : [
-        isAdmin ? await prisma.membershipRequest.count({ where: { status: "pending" } }) : 0,
-        0, 0, 0,
-      ];
 
   const grantedModules = user.permissions.map((p) => p.module);
 

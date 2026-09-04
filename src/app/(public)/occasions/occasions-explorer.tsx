@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { TiltCard } from "@/components/ui/tilt-card";
 import { occasionGradient } from "@/lib/display";
 import { SearchBar } from "@/components/ui/search-bar";
@@ -44,8 +45,13 @@ export function OccasionsExplorer({ occasions }: { occasions: OccasionCard[] }) 
                 className={`group relative flex min-h-[16rem] flex-col justify-end overflow-hidden rounded-3xl bg-gradient-to-br ${occasionGradient(o.id)} p-6 text-white shadow-lg transition hover:shadow-2xl`}
               >
                 {o.cover && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={o.cover} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45 transition duration-500 group-hover:scale-105 group-hover:opacity-55" />
+                  <Image
+                    src={o.cover}
+                    alt=""
+                    fill
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    className="object-cover opacity-45 transition duration-500 group-hover:scale-105 group-hover:opacity-55"
+                  />
                 )}
                 <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                 {o.iconUrl && <span className="absolute left-5 top-5 z-10 text-3xl drop-shadow">{o.iconUrl}</span>}

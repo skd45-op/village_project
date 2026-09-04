@@ -5,6 +5,11 @@ import { NextResponse, type NextRequest } from "next/server";
 // coarse redirect for unauthenticated users hitting protected routes.
 // Fine-grained role/permission checks still happen server-side per action/page.
 export async function updateSession(request: NextRequest) {
+  // Never trust a client-supplied value for this header — it's the only
+  // channel getCurrentUser() uses to skip its own auth.getUser() call, so a
+  // forged one would let a request claim any identity.
+  request.headers.delete("x-app-auth-id");
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -31,6 +36,16 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Thread the already-verified identity through to the RSC render so
+  // getCurrentUser() doesn't have to make its own redundant auth.getUser()
+  // network call — NextResponse.next() snapshots request.headers at
+  // construction time, so we rebuild it here to actually carry the header,
+  // copying forward any session-refresh cookies setAll already staged.
+  if (user) request.headers.set("x-app-auth-id", user.id);
+  const finalResponse = NextResponse.next({ request });
+  response.cookies.getAll().forEach((c) => finalResponse.cookies.set(c));
+  response = finalResponse;
 
   const path = request.nextUrl.pathname;
 

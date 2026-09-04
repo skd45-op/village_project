@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 // Continuously auto-scrolling band of recent photos. Two copies of the strip sit
 // side by side and the track translates -50%, so the loop is seamless. Pauses on
 // hover; stops entirely under prefers-reduced-motion (globals.css).
@@ -17,8 +19,13 @@ export function PhotoMarquee({ urls }: { urls: string[] }) {
             key={i}
             className="h-44 w-64 shrink-0 overflow-hidden rounded-2xl border border-black/[0.06] shadow-sm"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" className="h-full w-full object-cover transition duration-500 hover:scale-105" />
+            <Image
+              src={url}
+              alt=""
+              width={256}
+              height={176}
+              className="h-full w-full object-cover transition duration-500 hover:scale-105"
+            />
           </div>
         ))}
       </div>

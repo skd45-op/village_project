@@ -68,24 +68,27 @@ export default async function BudgetPage({
     );
   }
 
-  const { session, rows, income, expense, balance } = await getSessionBudget(sessionId);
+  // getSessionBudget, members, and donations don't depend on each other's
+  // results — fetch concurrently. getOccasionStock needs session.occasionId,
+  // so it has to wait for getSessionBudget and stays a separate, final call.
+  const [{ session, rows, income, expense, balance }, members, donations] = await Promise.all([
+    getSessionBudget(sessionId),
+    canAdd
+      ? prisma.user.findMany({
+          where: { status: "active", role: { in: ["member", "admin"] } },
+          orderBy: { firstName: "asc" },
+          select: { id: true, firstName: true, lastName: true },
+        })
+      : Promise.resolve([]),
+    prisma.donation.findMany({
+      where: { sessionId },
+      orderBy: { date: "desc" },
+      include: { member: { select: { firstName: true, lastName: true } } },
+    }),
+  ]);
   if (!session) redirect("/budget");
 
   const { balance: stockBalance } = await getOccasionStock(session.occasionId);
-
-  const members = canAdd
-    ? await prisma.user.findMany({
-        where: { status: "active", role: { in: ["member", "admin"] } },
-        orderBy: { firstName: "asc" },
-        select: { id: true, firstName: true, lastName: true },
-      })
-    : [];
-
-  const donations = await prisma.donation.findMany({
-    where: { sessionId },
-    orderBy: { date: "desc" },
-    include: { member: { select: { firstName: true, lastName: true } } },
-  });
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, canCreateInModule } from "@/lib/auth";
@@ -145,12 +146,13 @@ export default async function OccasionPage({
                 {photos.map((m) => (
                   <div key={m.id} className="group relative">
                     <a href={m.url} target="_blank" rel="noopener noreferrer">
-                      <div className="aspect-square overflow-hidden rounded-xl border border-black/10 bg-neutral-100 dark:bg-neutral-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className="relative aspect-square overflow-hidden rounded-xl border border-black/10 bg-neutral-100 dark:bg-neutral-800">
+                        <Image
                           src={m.url}
                           alt=""
-                          className="h-full w-full object-cover transition group-hover:scale-105"
+                          fill
+                          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                          className="object-cover transition group-hover:scale-105"
                         />
                       </div>
                     </a>

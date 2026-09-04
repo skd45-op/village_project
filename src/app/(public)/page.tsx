@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { ButtonLink } from "@/components/ui/button";
@@ -172,8 +173,13 @@ export default async function HomePage() {
                         className={`group relative flex min-h-[19rem] flex-col justify-end overflow-hidden rounded-3xl bg-gradient-to-br ${occasionGradient(o.id)} p-6 text-white shadow-lg transition hover:shadow-2xl`}
                       >
                         {cover && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45 transition duration-500 group-hover:scale-105 group-hover:opacity-55" />
+                          <Image
+                            src={cover}
+                            alt=""
+                            fill
+                            sizes="(min-width: 768px) 33vw, 100vw"
+                            className="object-cover opacity-45 transition duration-500 group-hover:scale-105 group-hover:opacity-55"
+                          />
                         )}
                         <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                         {o.iconUrl && <span className="absolute left-5 top-5 z-10 text-3xl drop-shadow">{o.iconUrl}</span>}
