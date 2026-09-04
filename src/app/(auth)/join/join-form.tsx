@@ -2,10 +2,10 @@
 
 import { useActionState } from "react";
 import { register, type ActionState } from "@/lib/actions/auth";
-import { Field, IconInput, PasswordInput, Alert, ValidatedForm } from "@/components/ui/primitives";
+import { Field, IconInput, PasswordInput, PhoneInput, Alert, ValidatedForm } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AvatarUploader } from "@/components/avatar-uploader";
-import { UserIcon, PhoneIcon, MailIcon } from "@/components/ui/icons";
+import { UserIcon, MailIcon } from "@/components/ui/icons";
 
 export function JoinForm() {
   const [state, action] = useActionState<ActionState, FormData>(register, {});
@@ -19,7 +19,7 @@ export function JoinForm() {
           <IconInput icon={<UserIcon />} name="name" required placeholder="Enter your name" />
         </Field>
         <Field label="Mobile number" name="mobile" required>
-          <IconInput icon={<PhoneIcon />} name="mobile" type="tel" required placeholder="Enter your mobile" />
+          <PhoneInput name="mobile" required placeholder="Enter your mobile" />
         </Field>
       </div>
 
@@ -28,7 +28,7 @@ export function JoinForm() {
           <IconInput icon={<MailIcon />} name="email" type="email" autoComplete="email" required placeholder="Enter your email" />
         </Field>
         <Field label="Password" name="password" required>
-          <PasswordInput name="password" autoComplete="new-password" required minLength={8} placeholder="Create a password" />
+          <PasswordInput name="password" autoComplete="new-password" required minLength={6} placeholder="Create a password" />
         </Field>
       </div>
 

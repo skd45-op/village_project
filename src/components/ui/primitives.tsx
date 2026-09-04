@@ -159,3 +159,6 @@ export { MoneyInput } from "./money-input";
 
 // PasswordInput lives in ./password-input (client-only — show/hide toggle state).
 export { PasswordInput } from "./password-input";
+
+// PhoneInput lives in ./phone-input (client-only — it intercepts keystrokes).
+export { PhoneInput } from "./phone-input";

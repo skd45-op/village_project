@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, canCreateInModule } from "@/lib/auth";
 import { notifyUsers } from "@/lib/notify";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireReviewer() {
   const user = await getCurrentUser();
@@ -37,6 +38,16 @@ export async function approveRequest(form: FormData) {
 
   if (req.userId) {
     await notifyUsers([req.userId], "membership_approved", "Your membership has been approved. Welcome! 🎉");
+
+    // Membership approval is our source of truth for account access — confirm
+    // the Supabase auth email too, so members don't get stuck on "Email not
+    // confirmed" waiting on a confirmation link (esp. if their inbox typo'd
+    // an address they can't receive mail at).
+    const applicant = await prisma.user.findUnique({ where: { id: req.userId }, select: { authId: true } });
+    if (applicant?.authId) {
+      const admin = createAdminClient();
+      await admin.auth.admin.updateUserById(applicant.authId, { email_confirm: true });
+    }
   }
   revalidatePath("/admin/members");
 }

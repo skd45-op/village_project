@@ -20,7 +20,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Kundapur · Village Connect",
+  title: "Kundapur",
   description:
     "A living archive of our village — celebrations, photos and live streams, a transparent community treasury, and the people behind it all.",
 };

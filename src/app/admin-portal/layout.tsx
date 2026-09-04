@@ -14,7 +14,7 @@ export default function AdminPortalLayout({ children }: { children: ReactNode })
 
       <div className="relative mb-8 flex flex-col items-center text-center">
         <OmMark size="lg" className="mb-3 shadow-lg shadow-black/40" />
-        <p className="eyebrow text-gold">Kundapur · Village Connect</p>
+        <p className="eyebrow text-gold">Kundapur Admin</p>
       </div>
 
       <div className="relative w-full max-w-sm">{children}</div>

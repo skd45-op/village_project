@@ -6,6 +6,23 @@ import { cn } from "@/lib/utils";
 type Errors = Record<string, string>;
 const FieldErrorContext = createContext<Errors>({});
 
+// Browser-native validation messages are long and inconsistent across fields
+// ("Please include an '@' in the email address. 'x' is missing an '@'.").
+// Map each validity condition to a short message instead — falling back to the
+// input's own `title` (used for pattern mismatches, e.g. PhoneInput) or the
+// native message only as a last resort.
+function shortMessage(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+  const v = el.validity;
+  if (v.valueMissing) return "This field is required.";
+  if (v.typeMismatch) return el.type === "email" ? "Enter a valid email." : "Invalid value.";
+  if (v.tooShort) return `Must be at least ${(el as HTMLInputElement).minLength} characters.`;
+  if (v.tooLong) return `Must be at most ${(el as HTMLInputElement).maxLength} characters.`;
+  if (v.patternMismatch) return el.title || "Invalid format.";
+  if (v.rangeUnderflow) return `Must be at least ${(el as HTMLInputElement).min}.`;
+  if (v.rangeOverflow) return `Must be at most ${(el as HTMLInputElement).max}.`;
+  return el.validationMessage;
+}
+
 export function useFieldError(name?: string) {
   const errors = useContext(FieldErrorContext);
   return name ? errors[name] : undefined;
@@ -34,7 +51,7 @@ export function ValidatedForm({
     const el = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
     if (!el?.name) return;
     e.preventDefault(); // suppress the native tooltip
-    setErrors((prev) => ({ ...prev, [el.name]: el.validationMessage }));
+    setErrors((prev) => ({ ...prev, [el.name]: shortMessage(el) }));
   }
 
   function clearIfValid(e: FormEvent) {

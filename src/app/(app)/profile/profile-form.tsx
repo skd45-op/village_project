@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { updateProfile } from "@/lib/actions/profile";
 import type { ActionState } from "@/lib/actions/auth";
-import { Field, Input, Alert, ValidatedForm } from "@/components/ui/primitives";
+import { Field, Input, PhoneInput, Alert, ValidatedForm } from "@/components/ui/primitives";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { AvatarUploader } from "@/components/avatar-uploader";
 
@@ -34,7 +34,7 @@ export function ProfileForm({
       </div>
 
       <Field label="Mobile number" name="mobile" required>
-        <Input name="mobile" type="tel" defaultValue={mobile} required />
+        <PhoneInput name="mobile" defaultValue={mobile} required />
       </Field>
       <Field label="Address / Ward" name="address" optional>
         <Input name="address" defaultValue={address} />

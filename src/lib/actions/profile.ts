@@ -21,6 +21,7 @@ export async function updateProfile(_prev: ActionState, form: FormData): Promise
   const photoUrl = str(form, "photoUrl");
 
   if (!mobile) return { error: "Mobile number is required." };
+  if (!/^[0-9]{10}$/.test(mobile)) return { error: "Mobile number must be exactly 10 digits." };
 
   const age = ageRaw ? Number(ageRaw) : null;
 

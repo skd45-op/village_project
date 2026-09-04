@@ -22,8 +22,11 @@ export async function register(_prev: ActionState, form: FormData): Promise<Acti
   if (!name || !email || !password || !mobile) {
     return { error: "Please fill in name, email, password and mobile number." };
   }
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters." };
+  if (!/^[0-9]{10}$/.test(mobile)) {
+    return { error: "Mobile number must be exactly 10 digits." };
+  }
+  if (password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
   }
 
   // Split a single "Full name" into first/last for our schema.
@@ -73,10 +76,23 @@ export async function login(_prev: ActionState, form: FormData): Promise<ActionS
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: error.message };
+  if (error) return { error: friendlyAuthError(error) };
 
   revalidatePath("/", "layout");
   redirect(next);
+}
+
+// Supabase's raw auth error messages are written for developers, not members
+// (e.g. "Email not confirmed" for a pending membership request). Translate the
+// ones members are likely to hit into plain, reassuring language.
+function friendlyAuthError(error: { message: string }): string {
+  if (/email not confirmed/i.test(error.message)) {
+    return "Your email isn't confirmed yet — our admin team will review and approve your membership within 1-2 days. Please try signing in again after that.";
+  }
+  if (/invalid login credentials/i.test(error.message)) {
+    return "Incorrect email or password.";
+  }
+  return error.message;
 }
 
 export async function logout() {

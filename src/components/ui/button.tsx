@@ -6,7 +6,7 @@ type Variant = "primary" | "secondary" | "danger" | "ghost" | "gold";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-medium transition disabled:opacity-60 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-500/40";
+  "inline-flex cursor-pointer items-center justify-center gap-2 rounded-full font-medium transition disabled:cursor-not-allowed disabled:opacity-60 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-500/40";
 
 const variants: Record<Variant, string> = {
   primary: "bg-brand-800 text-white hover:bg-brand-900 shadow-sm",

@@ -19,12 +19,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
         <Link href="/" className="relative flex items-center gap-2.5">
           <OmMark />
-          <span className="leading-tight">
-            <span className="block font-semibold tracking-tight">Kundapur</span>
-            <span className="block text-[0.62rem] font-medium uppercase tracking-[0.18em] text-white/70">
-              Village Connect
-            </span>
-          </span>
+          <span className="font-semibold tracking-tight">Kundapur</span>
         </Link>
 
         <div className="relative">
@@ -43,12 +38,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <main className="flex flex-col items-center justify-center bg-cream px-4 py-10">
         <Link href="/" className="mb-6 flex items-center gap-2.5 lg:hidden">
           <OmMark />
-          <span className="leading-tight">
-            <span className="block font-semibold tracking-tight">Kundapur</span>
-            <span className="block text-[0.62rem] font-medium uppercase tracking-[0.18em] text-muted">
-              Village Connect
-            </span>
-          </span>
+          <span className="font-semibold tracking-tight">Kundapur</span>
         </Link>
         {children}
       </main>

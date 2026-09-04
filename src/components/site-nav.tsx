@@ -38,12 +38,7 @@ export async function SiteNav() {
         {/* Brand */}
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <OmMark />
-          <span className="leading-tight">
-            <span className="block font-semibold tracking-tight">Kundapur</span>
-            <span className="block text-[0.62rem] font-medium uppercase tracking-[0.18em] text-muted">
-              Village Connect
-            </span>
-          </span>
+          <span className="font-semibold tracking-tight">Kundapur</span>
         </Link>
 
         {/* Primary links */}
@@ -61,13 +56,17 @@ export async function SiteNav() {
 
         {/* Right cluster */}
         <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-0">
-          <span className="hidden h-5 w-px bg-[color:var(--hairline)] md:block" />
-          <Link
-            href="/contact"
-            className="hidden text-sm font-medium text-foreground/70 transition hover:text-terracotta sm:block"
-          >
-            Contact
-          </Link>
+          {!isAdmin && (
+            <>
+              <span className="hidden h-5 w-px bg-[color:var(--hairline)] md:block" />
+              <Link
+                href="/contact"
+                className="hidden text-sm font-medium text-foreground/70 transition hover:text-terracotta sm:block"
+              >
+                Contact
+              </Link>
+            </>
+          )}
 
           {user ? (
             <>
